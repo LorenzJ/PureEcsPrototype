@@ -6,5 +6,6 @@
         void Remove(Entity e);
         bool Contains(Entity e);
         void Flush();
+        void Resize(int size);
     }
 }

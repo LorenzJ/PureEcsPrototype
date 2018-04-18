@@ -3,15 +3,15 @@ using TinyEcs;
 
 namespace Game.Components.Colliders
 {
-    public struct Circle : IComponent
+    public struct AABB : IComponent
     {
         public Vertex2f offset;
-        public float radius;
+        public Vertex2f size;
 
-        public Circle(Vertex2f offset, float radius)
+        public AABB(Vertex2f offset, Vertex2f size)
         {
             this.offset = offset;
-            this.radius = radius;
+            this.size = size;
         }
     }
 }

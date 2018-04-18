@@ -5,6 +5,11 @@ namespace Game.Components
 {
     public struct Direction : IComponent
     {
-        public Vertex3f vector;
+        public Vertex2f vector;
+
+        public Direction(Vertex2f vector)
+        {
+            this.vector = vector;
+        }
     }
 }

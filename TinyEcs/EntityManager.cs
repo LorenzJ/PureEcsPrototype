@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TinyEcs
 {
@@ -19,6 +20,12 @@ namespace TinyEcs
         public Entity CreateEntity()
         {
             var id = GetNewId();
+            if (id >= entities.Length)
+            {
+                var newEntities = new Entity[entities.Length * 2];
+                Array.Copy(entities, newEntities, Math.Min(entities.Length, newEntities.Length));
+                entities = newEntities;
+            }
             entities[id] = new Entity(id, generation++);
             return entities[id];
         }

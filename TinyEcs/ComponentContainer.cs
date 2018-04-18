@@ -8,37 +8,37 @@ namespace TinyEcs
         where T: struct
     {
         private T[] data;
-        private BitArray live;
+        private bool[] live;
 
         private List<PooledArray<T>> pooledArrays;
 
-        public ComponentContainer()
+        public ComponentContainer(int size)
         {
-            data = new T[1024];
-            live = new BitArray(1024);
+            data = new T[size];
+            live = new bool[size];
             pooledArrays = new List<PooledArray<T>>();
         }
 
         public void Add(Entity entity)
         {
-            live.Set(entity.id, true);
+            live[entity.id] = true;
         }
 
         public void Remove(Entity entity)
         {
             data[entity.id] = default;
-            live.Set(entity.id, false);
+            live[entity.id] = false;
         }
 
-        public bool Contains(Entity entity) => live.Get(entity.id);
+        public bool Contains(Entity entity) => live[entity.id];
 
-        internal void Resize(int newSize)
+        public void Resize(int newSize)
         {
             var newData = new T[newSize];
             Array.Copy(data, newData, Math.Min(data.Length, newData.Length));
             data = newData;
-            var newLive = new BitArray(newSize);
-            newLive.Or(live);
+            var newLive = new bool[newSize];
+            Array.Copy(live, newLive, Math.Min(live.Length, newLive.Length));
             live = newLive;
         }
 
@@ -47,7 +47,7 @@ namespace TinyEcs
         internal void Set(Entity entity, in T value)
         {
             data[entity.id] = value;
-            live.Set(entity.id, true);
+            live[entity.id] = true;
         }
 
         public T[] Pack(Entity[] entities)

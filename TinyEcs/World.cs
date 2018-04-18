@@ -18,6 +18,9 @@ namespace TinyEcs
 
         private bool dirty;
 
+        private const int initialSize = 1024;
+        private int size = initialSize;
+
         private class EqualityComparer : IEqualityComparer<Type[]>
         {
             public bool Equals(Type[] x, Type[] y)
@@ -47,7 +50,21 @@ namespace TinyEcs
         public Entity CreateEntity()
         {
             dirty = true;
-            return entityManager.CreateEntity();
+            var entity = entityManager.CreateEntity();
+            if (entity.id >= size)
+            {
+                Resize();
+            }
+            return entity;
+        }
+
+        private void Resize()
+        {
+            size *= 2;
+            foreach (var entry in componentContainerMap)
+            {
+                entry.Value.Resize(size);
+            }
         }
 
         public void RemoveEntity(Entity entity)
@@ -140,6 +157,14 @@ namespace TinyEcs
             return ref container.Get(entity);
         }
 
+        public void RemoveComponent<T>(Entity entity)
+            where T: struct, IComponent
+        {
+            dirty = true;
+            var container = componentContainerMap[typeof(T)] as ComponentContainer<T>;
+            container.Remove(entity);
+        }
+
         public Entity[] GetEntitiesWith(Type[] components)
         {
             if (!dirty && entityCache.TryGetValue(components, out var entities_))
@@ -171,14 +196,14 @@ namespace TinyEcs
         {
             var assembly = Assembly.GetCallingAssembly();
             var systemMap = GetSystemMap(assembly);
-            var componentContainerMap = GetComponentContainerMap(assembly);
+            var componentContainerMap = GetComponentContainerMap(assembly, initialSize);
             return new World(new EntityManager(), componentContainerMap, systemMap);
         }
 
         public void Load(Assembly assembly)
         {
             var systemMap = GetSystemMap(assembly);
-            var componentContainerMap = GetComponentContainerMap(assembly);
+            var componentContainerMap = GetComponentContainerMap(assembly, size);
             var systems = new List<ISystem>();
             foreach (var entry in systemMap)
             {
@@ -201,17 +226,19 @@ namespace TinyEcs
             }
         }
 
-        private static Dictionary<Type, IComponentContainer> GetComponentContainerMap(Assembly assembly)
+        private static Dictionary<Type, IComponentContainer> GetComponentContainerMap(Assembly assembly, int size)
         {
             var componentContainerMap = new Dictionary<Type, IComponentContainer>();
             {
                 var componentTypes = assembly.DefinedTypes.Where(t => t.ImplementedInterfaces.Contains(typeof(IComponent)));
                 var containerType = typeof(ComponentContainer<>);
+                var parameterTypes = new Type[] { typeof(int) };
+                var arguments = new object[] { size };
                 foreach (var componentType in componentTypes)
                 {
                     var componentTypeContainer = containerType.MakeGenericType(componentType);
-                    var constructor = componentTypeContainer.GetConstructor(Type.EmptyTypes);
-                    componentContainerMap.Add(componentType, constructor.Invoke(null) as IComponentContainer);
+                    var constructor = componentTypeContainer.GetConstructor(parameterTypes);
+                    componentContainerMap.Add(componentType, constructor.Invoke(arguments) as IComponentContainer);
                 }
             }
 

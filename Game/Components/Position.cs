@@ -5,6 +5,11 @@ namespace Game.Components
 {
     public struct Position : IComponent
     {
-        public Vertex3f vector;
+        public Vertex2f vector;
+
+        public Position(Vertex2f vector)
+        {
+            this.vector = vector;
+        }
     }
 }

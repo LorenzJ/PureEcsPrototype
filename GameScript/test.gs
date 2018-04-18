@@ -1,25 +1,4 @@
-﻿
-struct Vector
-{
-	x::single
-	y::single
-	
-}
-
-struct Position::IComponent
-{
-	vector::Vector
-}
-
-struct Direction::IComponent
-{
-	vector::Vector
-}
-
-struct UpdateMessage::Message
-{
-	float deltaTime;
-}
+﻿// Early test
 
 system Movement
 	on msg::UpdateMessage
@@ -28,5 +7,5 @@ system Movement
 		Direction
 	do
 	{
-		Position.vector += Direction.vector * msg.deltaTime;
+		Position.vector := Position.vector + Direction.vector * msg.deltaTime;
 	}

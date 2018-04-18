@@ -10,9 +10,9 @@ namespace Game.Systems
 
         class Components
         {
-            [Length] public int length;
-            [Write] public Position[] positions;
-            [Read] public Direction[] directions;
+            [Length] public int length = default;
+            [Read, Write] public Position[] positions = default;
+            [Read] public Direction[] directions = default;
         }
         [InjectComponents] Components components = new Components();
 
