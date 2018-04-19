@@ -14,4 +14,7 @@ namespace TinyEcs
     public class LengthAttribute : Attribute
     {
     }
+    public class EntitiesAttribute : Attribute
+    {
+    }
 }

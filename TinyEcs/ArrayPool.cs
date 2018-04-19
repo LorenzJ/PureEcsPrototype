@@ -32,7 +32,7 @@ namespace TinyEcs
                 var array = pooledArrays[index];
                 array.length = length;
                 pooledArrays.RemoveAt(index);
-                return pooledArrays[index];
+                return array;
             }
             else
             {

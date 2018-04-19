@@ -83,5 +83,7 @@ namespace TinyEcs
             }
             pooledArrays.Clear();
         }
+
+        public void Set(Entity entity, IComponent component) => Set(entity, (T)component);
     }
 }

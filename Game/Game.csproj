@@ -20,4 +20,9 @@
     <ProjectReference Include="..\TinyEcs\TinyEcs.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Systems\CollisionDetection\" />
+    <Folder Include="Systems\Player\" />
+  </ItemGroup>
+
 </Project>

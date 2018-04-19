@@ -4,33 +4,52 @@ namespace Game
 {
     class UpdateMessage : Message
     {
-        private float deltaTime;
+        public float DeltaTime { get; internal set; }
 
         public UpdateMessage(float deltaTime)
         {
-            this.deltaTime = deltaTime;
+            DeltaTime = deltaTime;
         }
+    }
 
-        public float DeltaTime { get => deltaTime; internal set => deltaTime = value; }
+    internal class LateUpdateMessage : Message
+    {
+        public float DeltaTime { get; internal set; }
+
+        public LateUpdateMessage(float deltaTime)
+        {
+            DeltaTime = deltaTime;
+        }
     }
 
     class Collision : Message
     {
-        public readonly Entity entity1, entity2;
-        public readonly object collider1, collider2;
+        public Entity Entity1 { get; }
+        public Entity Entity2 { get; private set; }
+        public object Collider1 { get; }
+        public object Collider2 { get; private set; }
 
         public Collision(Entity entity1, Entity entity2, object collider1, object collider2)
         {
-            this.entity1 = entity1;
-            this.entity2 = entity2;
-            this.collider1 = collider1;
-            this.collider2 = collider2;
+            Entity1 = entity1;
+            Entity2 = entity2;
+            Collider1 = collider1;
+            Collider2 = collider2;
         }
     }
 
+    enum InputCommand
+    {
+        Fire
+    }
     class InputCommandMessage : Message
     {
+        public InputCommand Command { get; private set; }
 
+        public InputCommandMessage(InputCommand command)
+        {
+            Command = command;
+        }
     }
 
 }

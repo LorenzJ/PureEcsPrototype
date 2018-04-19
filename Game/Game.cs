@@ -9,7 +9,8 @@ namespace Game
         private World world;
         private Entity player;
         private UpdateMessage updateMessage;
-        
+        private LateUpdateMessage lateUpdateMessage;
+
         public World World { get => world; }
 
         public Game()
@@ -28,12 +29,15 @@ namespace Game
             }
 
             updateMessage = new UpdateMessage(1 / 60.0f);
+            lateUpdateMessage = new LateUpdateMessage(1 / 60.0f);
         }
 
         public void Update(float deltaTime)
         {
             updateMessage.DeltaTime = deltaTime;
+            lateUpdateMessage.DeltaTime = deltaTime;
             world.Post(updateMessage);
+            world.Post(lateUpdateMessage);
         }
 
         public void Flush()

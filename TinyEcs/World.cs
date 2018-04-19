@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace TinyEcs
 {
@@ -13,6 +14,9 @@ namespace TinyEcs
         private Dictionary<Type, IComponentContainer> componentContainerMap;
         private Lookup<Type, ISystem> systemMap;
         private List<Unpacker> unpackers = new List<Unpacker>();
+
+        private ConcurrentQueue<Entity> entitiesToRemove = new ConcurrentQueue<Entity>();
+        private ConcurrentQueue<IComponent[]> entitiesToCreate = new ConcurrentQueue<IComponent[]>();
 
         private Dictionary<Type[], Entity[]> entityCache = new Dictionary<Type[], Entity[]>(new EqualityComparer());
 
@@ -56,6 +60,16 @@ namespace TinyEcs
                 Resize();
             }
             return entity;
+        }
+
+        public void QueueForRemoval(Entity entity)
+        {
+            entitiesToRemove.Enqueue(entity);
+        }
+
+        public void QueueForCreation(params IComponent[] components)
+        {
+            entitiesToCreate.Enqueue(components);
         }
 
         private void Resize()
@@ -108,6 +122,8 @@ namespace TinyEcs
                 var componentTypes = componentArrays
                     .Select(f => f.FieldType.GetElementType())
                     .ToArray();
+                var entityHandles = injectionFields
+                    .Where(f => f.IsDefined(typeof(EntitiesAttribute)));
 
                 var entities = GetEntitiesWith(componentTypes);
 
@@ -125,6 +141,11 @@ namespace TinyEcs
                     }
                 }
 
+                foreach (var handle in entityHandles)
+                {
+                    handle.SetValue(injectionRef, entities);
+                }
+
                 foreach (var length in lengths)
                 {
                     length.SetValue(injectionRef, entities.Length);
@@ -138,6 +159,18 @@ namespace TinyEcs
             {
                 componentContainer.Value.Flush();
             }
+            foreach (var entity in entitiesToRemove)
+            {
+                RemoveEntity(entity);
+            }
+            foreach (var components in entitiesToCreate)
+            {
+                var entity = entityManager.CreateEntity();
+                foreach (var component in components)
+                {
+                    SetComponent(entity, component);
+                }
+            }
             dirty = false;
         }
 
@@ -147,6 +180,13 @@ namespace TinyEcs
             dirty = true;
             var container = componentContainerMap[typeof(T)] as ComponentContainer<T>;
             container.Set(entity, value);
+        }
+
+        public void SetComponent(Entity entity, IComponent component)
+        {
+            dirty = true;
+            var container = componentContainerMap[component.GetType()];
+            container.Set(entity, component);
         }
 
         public ref T GetComponent<T>(Entity entity)
