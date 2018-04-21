@@ -7,6 +7,8 @@ namespace WindowsGame
     public partial class GameForm : Form
     {
         private Game.Game game;
+        private DateTime previousTime;
+        private DateTime currentTime;
 
         public GameForm()
         {
@@ -21,12 +23,16 @@ namespace WindowsGame
         private void GameForm_Load(object sender, EventArgs e)
         {
             game = new Game.Game();
+            previousTime = DateTime.Now;
             timer.Start();
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            game.Update(1 / 60.0f);
+            previousTime = currentTime;
+            currentTime = DateTime.Now;
+            var deltaTime = (currentTime - previousTime).TotalSeconds;
+            game.Update((float)deltaTime);
             Invalidate();
             game.Flush();
         }

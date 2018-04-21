@@ -5,9 +5,8 @@ namespace TinyEcs
 {
     internal class EntityManager
     {
-        private ushort id;
-        private ushort generation;
-        private Queue<ushort> openIds = new Queue<ushort>();
+        private uint id;
+        private Queue<uint> openIds = new Queue<uint>();
         internal Entity[] entities;
 
         public EntityManager()
@@ -15,24 +14,25 @@ namespace TinyEcs
             entities = new Entity[1024];
         }
 
-        public int Count { get => id; }
+        public int Count { get => (int)id; }
+        public long LongCount { get => id; }
 
         public Entity CreateEntity()
         {
             var id = GetNewId();
             if (id >= entities.Length)
             {
-                var newEntities = new Entity[entities.Length * 2];
+                var newEntities = new Entity[entities.LongLength * 2];
                 Array.Copy(entities, newEntities, Math.Min(entities.Length, newEntities.Length));
                 entities = newEntities;
             }
-            entities[id] = new Entity(id, generation++);
+            entities[id] = new Entity(id);
             return entities[id];
         }
 
         public void RemoveEntity(Entity e) => openIds.Enqueue(e.id);
 
-        private ushort GetNewId()
+        private uint GetNewId()
         {
             if (openIds.Count > 0)
             {

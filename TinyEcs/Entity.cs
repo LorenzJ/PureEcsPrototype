@@ -4,13 +4,11 @@ namespace TinyEcs
 {
     public struct Entity : IEquatable<Entity>
     {
-        internal ushort id;
-        internal ushort generation;
+        internal uint id;
 
-        internal Entity(ushort id, ushort generation)
+        internal Entity(uint id)
         {
             this.id = id;
-            this.generation = generation;
         }
 
         public override bool Equals(object obj)
@@ -24,14 +22,13 @@ namespace TinyEcs
             var hashCode = -530124137;
             hashCode = hashCode * -1521134295 + base.GetHashCode();
             hashCode = hashCode * -1521134295 + id.GetHashCode();
-            hashCode = hashCode * -1521134295 + generation.GetHashCode();
             return hashCode;
         }
 
         public static bool operator ==(Entity lhs, Entity rhs)
-            => lhs.id == rhs.id && lhs.generation == rhs.generation;
+            => lhs.id == rhs.id;
 
         public static bool operator !=(Entity lhs, Entity rhs)
-            => lhs.id != rhs.id || lhs.generation != rhs.generation;
+            => lhs.id != rhs.id;
     }
 }

@@ -23,6 +23,10 @@ namespace Game.Systems
         {
             var deltaTime = (message as LateUpdateMessage).DeltaTime;
 
+            //for (var i = 0; i < data.length; i++)
+            //{
+            //    data.directions[i].vector += gravityDirection * deltaTime;
+            //}
             Parallel.For(0, data.length, i =>
             {
                 data.directions[i].vector += gravityDirection * deltaTime;
