@@ -28,7 +28,6 @@ namespace TinyEcs
                 writeMap.Add(type, array);
             }
             entities = new Entity[size];
-            
         }
 
         internal void Resize(int size)
@@ -120,7 +119,7 @@ namespace TinyEcs
 
         public bool Contains(Type componentType) => componentTypes.Contains(componentType);
 
-        internal bool EquivalentTo(Type[] readTypes, Type[] writeTypes)
+        internal bool IsEquivalentTo(Type[] readTypes, Type[] writeTypes)
         {
             var innerReadTypes = readMap.Keys;
             var innerWriteTypes = writeMap.Keys;

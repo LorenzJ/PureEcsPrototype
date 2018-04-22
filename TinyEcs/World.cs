@@ -178,7 +178,7 @@ namespace TinyEcs
 
         private ComponentGroup GetComponentGroup(Type[] readTypes, Type[] writeTypes)
         {
-            var index = componentGroups.FindIndex(componentGroup => componentGroup.EquivalentTo(readTypes, writeTypes));
+            var index = componentGroups.FindIndex(componentGroup => componentGroup.IsEquivalentTo(readTypes, writeTypes));
             if (index >= 0)
             {
                 return componentGroups[index];
