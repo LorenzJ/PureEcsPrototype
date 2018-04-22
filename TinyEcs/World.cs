@@ -63,11 +63,7 @@ namespace TinyEcs
         public void Post(IMessage message)
         {
             var systems = systemMessageMap[message.GetType()];
-            var injectors = new List<GroupInjector>();
-            foreach (var system in systems)
-            {
-                injectors.AddRange(groupInjectorMap[system]);
-            }
+            var injectors = systems.SelectMany(system => groupInjectorMap[system]);
             Parallel.ForEach(injectors, injector => injector.Inject(componentContainerMap));
             Parallel.ForEach(systems, system => system.Execute(this, message));
             Parallel.ForEach(injectors, injector => injector.Unpack(componentContainerMap));
