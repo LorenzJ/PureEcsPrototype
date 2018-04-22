@@ -2,7 +2,7 @@
 
 namespace Game
 {
-    class UpdateMessage : Message
+    public struct UpdateMessage : IMessage
     {
         public float DeltaTime { get; internal set; }
 
@@ -12,7 +12,7 @@ namespace Game
         }
     }
 
-    internal class LateUpdateMessage : Message
+    public struct LateUpdateMessage : IMessage
     {
         public float DeltaTime { get; internal set; }
 
@@ -22,7 +22,7 @@ namespace Game
         }
     }
 
-    class Collision : Message
+    struct Collision : IMessage
     {
         public Entity Entity1 { get; }
         public Entity Entity2 { get; private set; }
@@ -42,7 +42,7 @@ namespace Game
     {
         Fire
     }
-    class InputCommandMessage : Message
+    struct InputCommandMessage : IMessage
     {
         public InputCommand Command { get; private set; }
 

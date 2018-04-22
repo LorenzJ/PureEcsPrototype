@@ -6,7 +6,7 @@ using TinyEcs;
 
 namespace Game.Systems
 {
-    class GravitySystem : ISystem
+    public class GravitySystem : System<LateUpdateMessage>
     {
         public Type MessageType => typeof(LateUpdateMessage);
 
@@ -14,22 +14,16 @@ namespace Game.Systems
 
         public class Data
         {
-            [Length] public int length;
-            [Write] public Direction[] directions;
+            public int length;
+            public RwArray<Direction> directions;
         }
-        [InjectComponents] public Data data = new Data();
+        [Group] public Data data;
 
-        public void Do(World world, Message message)
+        protected override void Execute(World world, LateUpdateMessage message)
         {
-            var deltaTime = (message as LateUpdateMessage).DeltaTime;
-
-            //for (var i = 0; i < data.length; i++)
-            //{
-            //    data.directions[i].vector += gravityDirection * deltaTime;
-            //}
             Parallel.For(0, data.length, i =>
             {
-                data.directions[i].vector += gravityDirection * deltaTime;
+                data.directions[i].vector += gravityDirection * message.DeltaTime;
             });
         }
     }

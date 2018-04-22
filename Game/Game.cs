@@ -19,14 +19,14 @@ namespace Game
             world = World.Create();
 
             player = world.CreateEntity();
-            world.SetComponent(player, new Position { vector = new Vertex2f(0) });
-            world.SetComponent(player, new Direction { vector = new Vertex2f(1) });
+            world.Add(player, new Position { vector = new Vertex2f(0) });
+            world.Add(player, new Direction { vector = new Vertex2f(1) });
 
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 500000; i++)
             {
                 var entity = world.CreateEntity();
-                world.SetComponent(entity, new Position { vector = new Vertex2f(-1) });
-                world.SetComponent(entity, new Direction { vector = new Vertex2f(2) });
+                world.Add(entity, new Position { vector = new Vertex2f(-1) });
+                world.Add(entity, new Direction { vector = new Vertex2f(2) });
             }
 
             updateMessage = new UpdateMessage(1 / 60.0f);
@@ -40,11 +40,6 @@ namespace Game
             world.Post(updateMessage);
             world.Post(lateUpdateMessage);
             Debug.Print($"rate: { 1 / deltaTime } fps");
-        }
-
-        public void Flush()
-        {
-            world.Flush();
         }
     }
 }

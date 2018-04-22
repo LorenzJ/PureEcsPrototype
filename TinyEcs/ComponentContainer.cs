@@ -1,89 +1,47 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace TinyEcs
 {
-    internal class ComponentContainer<T> : IComponentContainer
-        where T: struct
+    internal interface IComponentContainer
     {
-        private T[] data;
-        private bool[] live;
+        void Resize(int size);
+        void Pack(Entity[] entities, object dest, int length);
+        void Unpack(Entity[] entities, object src, int length);
+    }
 
-        private List<PooledArray<T>> pooledArrays;
+    public class ComponentContainer<T> : IComponentContainer
+        where T: struct, IComponent
+    {
+        private T[] items;
 
         public ComponentContainer(int size)
         {
-            data = new T[size];
-            live = new bool[size];
-            pooledArrays = new List<PooledArray<T>>();
+            items = new T[size];
         }
 
-        public void Add(Entity entity)
+        public ref T this[Entity entity] => ref items[entity.handle];
+
+        void IComponentContainer.Pack(Entity[] entities, object dest, int length)
         {
-            live[entity.id] = true;
-        }
-
-        public void Remove(Entity entity)
-        {
-            data[entity.id] = default;
-            live[entity.id] = false;
-        }
-
-        public bool Contains(Entity entity) => live[entity.id];
-
-        public void Resize(int newSize)
-        {
-            var newData = new T[newSize];
-            Array.Copy(data, newData, Math.Min(data.Length, newData.Length));
-            data = newData;
-            var newLive = new bool[newSize];
-            Array.Copy(live, newLive, Math.Min(live.Length, newLive.Length));
-            live = newLive;
-        }
-
-        internal ref T Get(Entity entity) => ref data[entity.id];
-
-        internal void Set(Entity entity, in T value)
-        {
-            data[entity.id] = value;
-            live[entity.id] = true;
-        }
-
-        public T[] Pack(Entity[] entities)
-        {
-            var packed = GetArray(entities.Length);
-            for (var i = 0; i < entities.Length; i++)
+            var packed = dest as T[];
+            for (var i = 0; i < length; i++)
             {
-                packed[i] = data[entities[i].id];
-            }
-            return packed.items;
+                packed[i] = items[entities[i].handle];
+            } 
         }
 
-        public void Unpack(Entity[] entities, T[] pack)
+        void IComponentContainer.Unpack(Entity[] entities, object src, int length)
         {
-            for (var i = 0; i < entities.Length; i++)
+            var packed = src as T[];
+            for (var i = 0; i < length; i++)
             {
-                data[entities[i].id] = pack[i];
+                items[entities[i].handle] = packed[i];
             }
         }
 
-        private PooledArray<T> GetArray(int length)
+        void IComponentContainer.Resize(int size)
         {
-            var array = ArrayPool<T>.Get().GetPooledArray(length);
-            pooledArrays.Add(array);
-            return array;
+            Array.Resize(ref items, size);
         }
-
-        public void Flush()
-        {
-            foreach (var pooledArray in pooledArrays)
-            {
-                pooledArray.Dispose();
-            }
-            pooledArrays.Clear();
-        }
-
-        public void Set(Entity entity, IComponent component) => Set(entity, (T)component);
     }
 }

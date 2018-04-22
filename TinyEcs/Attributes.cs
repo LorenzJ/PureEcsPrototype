@@ -2,19 +2,12 @@
 
 namespace TinyEcs
 {
-    public class ReadAttribute : Attribute
+    [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+    public sealed class ResourceAttribute : Attribute
     {
     }
-    public class WriteAttribute : Attribute
-    {
-    }
-    public class InjectComponentsAttribute : Attribute
-    {
-    }
-    public class LengthAttribute : Attribute
-    {
-    }
-    public class EntitiesAttribute : Attribute
+    [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+    public sealed class GroupAttribute : Attribute
     {
     }
 }

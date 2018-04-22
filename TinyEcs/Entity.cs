@@ -2,33 +2,25 @@
 
 namespace TinyEcs
 {
-    public struct Entity : IEquatable<Entity>
+    public struct Entity : IEquatable<Entity>, IComparable<Entity>
     {
-        internal uint id;
+        internal int handle;
 
-        internal Entity(uint id)
+        internal Entity(int handle)
         {
-            this.id = id;
+            this.handle = handle;
         }
 
-        public override bool Equals(object obj)
-            => obj is Entity other ? this == other : false;
+        public int CompareTo(Entity other) => handle - other.handle;
 
-        public bool Equals(Entity other)
-            => this == other;
-
-        public override int GetHashCode()
-        {
-            var hashCode = -530124137;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + id.GetHashCode();
-            return hashCode;
-        }
-
-        public static bool operator ==(Entity lhs, Entity rhs)
-            => lhs.id == rhs.id;
-
-        public static bool operator !=(Entity lhs, Entity rhs)
-            => lhs.id != rhs.id;
+        public override bool Equals(object obj) => obj is Entity other && Equals(other);
+        public bool Equals(Entity other) => handle == other.handle;
+        public override int GetHashCode() => unchecked(780127187 * -1521134295 + handle.GetHashCode());
+        public static bool operator ==(Entity entity1, Entity entity2) => entity1.handle == entity2.handle;
+        public static bool operator !=(Entity entity1, Entity entity2) => !(entity1 == entity2);
+        public static bool operator <(Entity entity1, Entity entity2) => entity1.handle < entity2.handle;
+        public static bool operator >(Entity entity1, Entity entity2) => entity1.handle > entity2.handle;
+        public static bool operator <=(Entity entity1, Entity entity2) => entity1.handle <= entity2.handle;
+        public static bool operator >=(Entity entity1, Entity entity2) => entity1.handle >= entity2.handle;
     }
 }

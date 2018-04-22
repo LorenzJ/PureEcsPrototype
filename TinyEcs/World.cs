@@ -3,315 +3,254 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace TinyEcs
 {
     public class World
     {
-        private EntityManager entityManager;
-
-        private Dictionary<Type, IComponentContainer> componentContainerMap;
-        private Lookup<Type, ISystem> systemMap;
-        private List<Unpacker> unpackers = new List<Unpacker>();
-
-        private ConcurrentQueue<Entity> entitiesToRemove = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<IComponent[]> entitiesToCreate = new ConcurrentQueue<IComponent[]>();
-
-        private Dictionary<Type[], Entity[]> entityCache = new Dictionary<Type[], Entity[]>(new EqualityComparer());
-
-        private bool dirty;
-
-        private const int initialSize = 1024;
+        private const int initialSize = 2048;
         private int size = initialSize;
+        private int highestEntityHandle = 0;
+        private Queue<int> openEntityHandles = new Queue<int>();
 
-        private class EqualityComparer : IEqualityComparer<Type[]>
-        {
-            public bool Equals(Type[] x, Type[] y)
-                => x.Length == y.Length && x.Intersect(y).Count() == x.Length;
+        private Dictionary<Type, object> resourceMap = new Dictionary<Type, object>();
+        private Dictionary<(Type[], Type[]), ComponentGroup> groupMap = new Dictionary<(Type[], Type[]), ComponentGroup>();
 
-            public int GetHashCode(Type[] obj)
-            {
-                unchecked
-                {
-                    var result = 17;
-                    for (int i = 0; i < obj.Length; i++)
-                    {
-                        result = result * 23 + obj[i].GetHashCode();
-                    }
-                    return result;
-                }
-            }
-        }
+        private Dictionary<Type, IComponentContainer> componentContainerMap = new Dictionary<Type, IComponentContainer>();
 
-        private World(EntityManager entityManager, Dictionary<Type, IComponentContainer> componentContainerMap, Lookup<Type, ISystem> systemMap)
-        {
-            this.entityManager = entityManager;
-            this.componentContainerMap = componentContainerMap;
-            this.systemMap = systemMap;
-        }
+        private List<ComponentGroup> componentGroups = new List<ComponentGroup>();
+        private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
+        private Lookup<Type, ISystem> systemMessageMap;
 
         public Entity CreateEntity()
         {
-            dirty = true;
-            var entity = entityManager.CreateEntity();
-            if (entity.id >= size)
+            // Try to fill open spots
+            if (openEntityHandles.Count > 0)
             {
-                Resize();
-            }
-            return entity;
-        }
-
-        public void QueueForRemoval(Entity entity)
-        {
-            entitiesToRemove.Enqueue(entity);
-        }
-
-        public void QueueForCreation(params IComponent[] components)
-        {
-            entitiesToCreate.Enqueue(components);
-        }
-
-        private void Resize()
-        {
-            size *= 2;
-            foreach (var entry in componentContainerMap)
-            {
-                entry.Value.Resize(size);
-            }
-        }
-
-        public void RemoveEntity(Entity entity)
-        {
-            dirty = true;
-            entityManager.RemoveEntity(entity);
-            foreach (var entry in componentContainerMap)
-            {
-                entry.Value.Remove(entity);
-            }
-        }
-
-        public void Post(Message message)
-        {
-            Parallel.ForEach(systemMap[message.GetType()], system =>
-            {
-                InjectComponents(system);
-                system.Do(this, message);
-            });
-            Parallel.ForEach(unpackers, unpacker => unpacker.Unpack());
-            unpackers.Clear();
-        }
-
-        private void InjectComponents(ISystem system)
-        {
-            var bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var fields = system.GetType().GetFields(bindingFlags)
-                .Where(f => f.IsDefined(typeof(InjectComponentsAttribute)));
-
-            foreach (var injectionTarget in fields)
-            {
-                var injectionRef = injectionTarget.GetValue(system);
-                var injectionFields = injectionTarget.FieldType.GetFields();
-
-                var lengths = injectionFields.Where(f => f.IsDefined(typeof(LengthAttribute)));
-                var reads = injectionFields
-                    .Where(f => f.IsDefined(typeof(ReadAttribute)));
-                var writes = injectionFields
-                    .Where(f => f.IsDefined(typeof(WriteAttribute)));
-                var componentArrays = reads.Union(writes).ToArray();
-                var componentTypes = componentArrays
-                    .Select(f => f.FieldType.GetElementType())
-                    .ToArray();
-                var entityHandles = injectionFields
-                    .Where(f => f.IsDefined(typeof(EntitiesAttribute)));
-
-                var entities = GetEntitiesWith(componentTypes);
-
-                for (int i = 0; i < componentTypes.Length; i++)
-                {
-                    var group = componentTypes[i];
-                    var container = componentContainerMap[group];
-                    var packMethod = container.GetType().GetMethod("Pack");
-                    var packed = packMethod.Invoke(container, new object[] { entities });
-                    componentArrays[i].SetValue(injectionRef, packed);
-                    if (writes.Contains(componentArrays[i]))
-                    {
-                        var unpackMethod = container.GetType().GetMethod("Unpack");
-                        unpackers.Add(new Unpacker(container, unpackMethod, entities, packed));
-                    }
-                }
-
-                foreach (var handle in entityHandles)
-                {
-                    handle.SetValue(injectionRef, entities);
-                }
-
-                foreach (var length in lengths)
-                {
-                    length.SetValue(injectionRef, entities.Length);
-                }
-            }
-        }
-
-        public void Flush()
-        {
-            foreach (var componentContainer in componentContainerMap)
-            {
-                componentContainer.Value.Flush();
-            }
-            foreach (var entity in entitiesToRemove)
-            {
-                RemoveEntity(entity);
-            }
-            foreach (var components in entitiesToCreate)
-            {
-                var entity = entityManager.CreateEntity();
-                foreach (var component in components)
-                {
-                    SetComponent(entity, component);
-                }
-            }
-            dirty = false;
-        }
-
-        public void SetComponent<T>(Entity entity, in T value)
-            where T: struct, IComponent
-        {
-            dirty = true;
-            var container = componentContainerMap[typeof(T)] as ComponentContainer<T>;
-            container.Set(entity, value);
-        }
-
-        public void SetComponent(Entity entity, IComponent component)
-        {
-            dirty = true;
-            var container = componentContainerMap[component.GetType()];
-            container.Set(entity, component);
-        }
-
-        public ref T GetComponent<T>(Entity entity)
-            where T: struct, IComponent
-        {
-            dirty = true;
-            var container = componentContainerMap[typeof(T)] as ComponentContainer<T>;
-            return ref container.Get(entity);
-        }
-
-        public void RemoveComponent<T>(Entity entity)
-            where T: struct, IComponent
-        {
-            dirty = true;
-            var container = componentContainerMap[typeof(T)] as ComponentContainer<T>;
-            container.Remove(entity);
-        }
-
-        public Entity[] GetEntitiesWith(Type[] components)
-        {
-            if (!dirty && entityCache.TryGetValue(components, out var entities_))
-            {
-                return entities_;
-            }
-            var containers = components.Select(t => componentContainerMap[t]);
-            var entities = new List<Entity>();
-            for (int i = 0; i < entityManager.Count; i++)
-            {
-                if (containers.All(c => c.Contains(entityManager.entities[i])))
-                {
-                    entities.Add(entityManager.entities[i]);
-                }
-            }
-            var array = entities.ToArray();
-            if (entityCache.ContainsKey(components))
-            {
-                entityCache[components] = array;
+                return new Entity(openEntityHandles.Dequeue());
             }
             else
             {
-                entityCache.Add(components, array);
+                // Get a new handle
+                var handle = highestEntityHandle++;
+                // Resize component containers if required
+                if (handle >= size)
+                {
+                    size *= 2;
+                    foreach (var entry in componentContainerMap)
+                    {
+                        entry.Value.Resize(size);
+                    }
+                }
+                // Return an entity with the new handle
+                return new Entity(handle);
             }
-            return entities.ToArray();
+        }
+
+        public void Add<T>(Entity entity, T component)
+            where T : struct, IComponent
+        {
+            var affectedGroups = componentGroups.Where(g => g.Contains(component.GetType()));
+            foreach (var group in affectedGroups)
+            {
+                group.AddIfDoesNotExist(entity);
+            }
+        }
+
+        public ref T Get<T>(Entity entity)
+            where T : struct, IComponent => ref (componentContainerMap[typeof(T)] as ComponentContainer<T>)[entity];
+
+        public void Post(IMessage message)
+        {
+            var systems = systemMessageMap[message.GetType()];
+            var injectors = new List<GroupInjector>();
+            foreach (var system in systems)
+            {
+                injectors.AddRange(groupInjectorMap[system]);
+            }
+            Parallel.ForEach(injectors, injector => injector.Inject(componentContainerMap));
+            Parallel.ForEach(systems, system => system.Execute(this, message));
+            Parallel.ForEach(injectors, injector => injector.Unpack(componentContainerMap));
+
         }
 
         public static World Create()
         {
-            var assembly = Assembly.GetCallingAssembly();
-            var systemMap = GetSystemMap(assembly);
-            var componentContainerMap = GetComponentContainerMap(assembly, initialSize);
-            return new World(new EntityManager(), componentContainerMap, systemMap);
-        }
+            var world = new World();
 
-        public void Load(Assembly assembly)
-        {
-            var systemMap = GetSystemMap(assembly);
-            var componentContainerMap = GetComponentContainerMap(assembly, size);
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var types = assemblies.SelectMany(asm => asm.DefinedTypes);
+
+            var resourceMap = new Dictionary<Type, object>();
+
+            var systemTypes = types
+                .Where(type => type.BaseType != null && type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == typeof(System<>));
+
+            var componentTypes = types
+                .Where(type => type.IsValueType && type.GetInterfaces().Contains(typeof(IComponent)));
+
             var systems = new List<ISystem>();
-            foreach (var entry in systemMap)
+                
+            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+            foreach (var componentType in componentTypes)
             {
-                foreach (var item in entry)
+                var componentContainerType = typeof(ComponentContainer<>).MakeGenericType(new Type[] { componentType });
+                var constructor = componentContainerType.GetConstructor(new Type[] { typeof(int) });
+                world.componentContainerMap.Add(componentType, constructor.Invoke(new object[] { initialSize }) as IComponentContainer);
+            }
+            foreach (var systemType in systemTypes)
+            {
+                var systemInstance = systemType.GetConstructor(Type.EmptyTypes).Invoke(null);
+                systems.Add(systemInstance as ISystem);
+
+                // Find all fields for resource injection
+                var resourceFields =
+                    systemType.GetFields(bindingFlags)
+                    .Where(fi => fi.GetCustomAttribute(typeof(ResourceAttribute)) != null);
+
+                foreach (var resourceField in resourceFields)
                 {
-                    systems.Add(item);
+                    // Create or get the resource
+                    if (!resourceMap.TryGetValue(resourceField.FieldType, out var resource))
+                    {
+                        resource = resourceField.FieldType.GetConstructor(Type.EmptyTypes).Invoke(null);
+                        resourceMap.Add(resourceField.FieldType, resource);
+                    }
+                    // Inject the resource
+                    resourceField.SetValue(systemInstance, resource);
                 }
-            }
-            foreach (var entry in this.systemMap)
-            {
-                foreach (var item in entry)
+
+                // Find groups for component injection
+                var groupFields =
+                    systemType.GetFields(bindingFlags)
+                    .Where(fi => fi.GetCustomAttribute(typeof(GroupAttribute)) != null);
+
+                var groupInjectors = new List<GroupInjector>();
+                foreach (var groupField in groupFields)
                 {
-                    systems.Add(item);
+                    var groupFieldType = groupField.FieldType;
+                    var groupFieldInstance = groupFieldType.GetConstructor(Type.EmptyTypes).Invoke(null);
+                    groupField.SetValue(systemInstance, groupFieldInstance);
+
+                    var fields = groupFieldType.GetFields(bindingFlags);
+                    var lengthField = groupFieldType.GetField("length");
+                    var entityField = fields.Where(fi => fi.FieldType == typeof(Entity[])).SingleOrDefault();
+                    var genericFields = fields
+                        .Where(fi => fi.FieldType.IsGenericType);
+                    var readFields = genericFields
+                        .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RArray<>));
+                    var writeFields = genericFields
+                        .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RwArray<>));
+
+                    var readTypes = readFields
+                        .Select(fi => fi.FieldType.GetGenericArguments()[0]).ToArray();
+                    var writeTypes = writeFields
+                        .Select(fi => fi.FieldType.GetGenericArguments()[0]).ToArray();
+
+                    var readTuples = readTypes.Zip(readFields, (t, f) => (t, f)).ToArray();
+                    var writeTuples = writeTypes.Zip(writeFields, (t, f) => (t, f)).ToArray();
+
+                    var componentGroup = world.GetComponentGroup(readTypes, writeTypes);
+                    var groupInjector = new GroupInjector(groupFieldInstance, writeTuples, readTuples, entityField, lengthField, componentGroup);
+                    groupInjectors.Add(groupInjector);
                 }
+                world.groupInjectorMap.Add(systemInstance as ISystem, groupInjectors);
             }
-            this.systemMap = systems.ToLookup(x => x.MessageType) as Lookup<Type, ISystem>;
-            foreach (var entry in componentContainerMap)
-            {
-                this.componentContainerMap.Add(entry.Key, entry.Value);
-            }
+
+            world.systemMessageMap = systems
+                .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
+            return world;
         }
 
-        private static Dictionary<Type, IComponentContainer> GetComponentContainerMap(Assembly assembly, int size)
+        private ComponentGroup GetComponentGroup(Type[] readTypes, Type[] writeTypes)
         {
-            var componentContainerMap = new Dictionary<Type, IComponentContainer>();
+            var index = componentGroups.FindIndex(componentGroup => componentGroup.EquivalentTo(readTypes, writeTypes));
+            if (index >= 0)
             {
-                var componentTypes = assembly.DefinedTypes.Where(t => t.ImplementedInterfaces.Contains(typeof(IComponent)));
-                var containerType = typeof(ComponentContainer<>);
-                var parameterTypes = new Type[] { typeof(int) };
-                var arguments = new object[] { size };
-                foreach (var componentType in componentTypes)
+                return componentGroups[index];
+            }
+            else
+            {
+                var newComponentGroup = new ComponentGroup(readTypes, writeTypes, size);
+                componentGroups.Add(newComponentGroup);
+                return newComponentGroup;
+            }
+        }
+
+        private class GroupInjector
+        {
+            private object group;
+            private (Type, FieldInfo, ConstructorInfo)[] writeFields;
+            private (Type, FieldInfo, ConstructorInfo)[] readFields;
+            private FieldInfo entityField;
+            private FieldInfo lengthField;
+            internal ComponentGroup componentGroup;
+
+            private object[] arguments = new object[] { null };
+
+            public GroupInjector(object group, (Type, FieldInfo)[] writeFields, (Type, FieldInfo)[] readFields, FieldInfo entityField, FieldInfo lengthField, ComponentGroup componentGroup)
+            {
+                this.group = group;
+                this.entityField = entityField;
+                this.lengthField = lengthField;
+                this.componentGroup = componentGroup;
+
+                var RwArrayType = typeof(RwArray<>);
+                this.writeFields = new(Type, FieldInfo, ConstructorInfo)[writeFields.Length];
+                for (var i = 0; i < writeFields.Length; i++)
                 {
-                    var componentTypeContainer = containerType.MakeGenericType(componentType);
-                    var constructor = componentTypeContainer.GetConstructor(parameterTypes);
-                    componentContainerMap.Add(componentType, constructor.Invoke(arguments) as IComponentContainer);
+                    var (type, fieldInfo) = writeFields[i];
+                    var rawArrayType = type.MakeArrayType();
+                    var wrappedArrayType = RwArrayType.MakeGenericType(type);
+                    var constructor = wrappedArrayType.GetConstructor(new Type[] { rawArrayType });
+                    this.writeFields[i] = (type, fieldInfo, constructor);
+                }
+                var RArrayType = typeof(RArray<>);
+                this.readFields = new(Type, FieldInfo, ConstructorInfo)[readFields.Length];
+                for (var i = 0; i < readFields.Length; i++)
+                {
+                    var (type, fieldInfo) = readFields[i];
+                    var rawArrayType = type.MakeArrayType();
+                    var wrappedArrayType = RArrayType.MakeGenericType(type);
+                    var constructor = wrappedArrayType.GetConstructor(new Type[] { rawArrayType });
+                    this.readFields[i] = (type, fieldInfo, constructor);
+                }
+
+            }
+
+            public void Inject(Dictionary<Type, IComponentContainer> containers)
+            {
+                componentGroup.Inject(containers);
+                foreach (var (type, field, constructor) in writeFields)
+                {
+                    arguments[0] = componentGroup.GetDirectWrite(type);
+                    field.SetValue(group, constructor.Invoke(arguments));
+                }
+                foreach (var (type, field, constructor) in readFields)
+                {
+                    arguments[0] = componentGroup.GetDirectRead(type);
+                    field.SetValue(group, constructor.Invoke(arguments));
+                }
+                if (entityField != null)
+                {
+                    entityField.SetValue(group, componentGroup.Entities);
+                }
+                if (lengthField != null)
+                {
+                    lengthField.SetValue(group, componentGroup.Length);
                 }
             }
 
-            return componentContainerMap;
+            public void Unpack(Dictionary<Type, IComponentContainer> containers)
+            {
+                componentGroup.Unpack(containers);
+            }
+
         }
 
-        private static Lookup<Type, ISystem> GetSystemMap(Assembly assembly)
-        {
-            return assembly.DefinedTypes
-                .Where(t => t.ImplementedInterfaces.Contains(typeof(ISystem)))
-                .Select(t => (ISystem)t.GetConstructor(Type.EmptyTypes).Invoke(null))
-                .ToLookup(s => s.MessageType) as Lookup<Type, ISystem>;
-        }
+
     }
 
-    internal struct Unpacker
-    {
-        private IComponentContainer container;
-        private MethodInfo unpackMethod;
-        private Entity[] entities;
-        private object values;
 
-        public Unpacker(IComponentContainer container, MethodInfo unpackMethod, Entity[] entities, object values)
-        {
-            this.container = container;
-            this.unpackMethod = unpackMethod;
-            this.entities = entities;
-            this.values = values;
-        }
-
-        public void Unpack()
-        {
-            unpackMethod.Invoke(container, new object[] { entities, values });
-        }
-    }
 }

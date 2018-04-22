@@ -1,37 +1,29 @@
-﻿using System;
-using TinyEcs;
+﻿using TinyEcs;
 using Game.Components;
 using System.Threading.Tasks;
 
 namespace Game.Systems
 {
-    class MovementSystem : ISystem
+    public class MovementSystem : System<UpdateMessage>
     {
-        public Type MessageType => typeof(UpdateMessage);
 
-        class Components
+        class Data
         {
-            [Length] public int length = default;
-            [Read, Write] public Position[] positions = default;
-            [Read] public Direction[] directions = default;
+            public int length = default;
+            public RwArray<Position> positions = default;
+            public RArray<Direction> directions = default;
         }
-        [InjectComponents] Components components = new Components();
+        [Group] Data data;
 
-        public void Do(World world, Message message)
+        protected override void Execute(World world, UpdateMessage message)
         {
-            var deltaTime = (message as UpdateMessage).DeltaTime;
+            var positions = data.positions;
+            var directions = data.directions;
 
-            var positions = components.positions;
-            var directions = components.directions;
-
-            Parallel.For(0, components.length, i =>
+            Parallel.For(0, data.length, i =>
             {
-                positions[i].vector += directions[i].vector * deltaTime;
+                positions[i].vector += directions[i].vector * message.DeltaTime;
             });
-            //for (int i = 0; i < components.length; i++)
-            //{
-            //    positions[i].vector += directions[i].vector * deltaTime;
-            //}
         }
     }
 }

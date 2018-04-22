@@ -34,7 +34,6 @@ namespace WindowsGame
             var deltaTime = (currentTime - previousTime).TotalSeconds;
             game.Update((float)deltaTime);
             Invalidate();
-            game.Flush();
         }
     }
 }
