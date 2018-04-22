@@ -25,7 +25,7 @@ namespace TinyEcs
 
         private List<ComponentGroup> componentGroups = new List<ComponentGroup>();
         private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
-        private Dictionary<ArcheType, ComponentGroup[]> archeTypeAffectingGroups = new Dictionary<ArcheType, ComponentGroup[]>();
+        private Dictionary<Archetype, ComponentGroup[]> archeTypeAffectingGroups = new Dictionary<Archetype, ComponentGroup[]>();
         private Lookup<Type, ISystem> systemMessageMap;
         private int archeTypeId;
 
@@ -58,7 +58,7 @@ namespace TinyEcs
             }
         }
 
-        public Entity CreateEntity(ArcheType archeType)
+        public Entity CreateEntity(Archetype archeType)
         {
             Entity entity = CreateEntity();
             foreach (var group in archeTypeAffectingGroups[archeType])
@@ -68,7 +68,7 @@ namespace TinyEcs
             return entity;
         }
 
-        public ArcheType CreateArcheType(params Type[] types)
+        public Archetype CreateArcheType(params Type[] types)
         {
             var groupSet = new HashSet<ComponentGroup>();
             foreach (var type in types)
@@ -80,7 +80,7 @@ namespace TinyEcs
                 }
             }
 
-            var archeType = new ArcheType(archeTypeId++);
+            var archeType = new Archetype(archeTypeId++);
             archeTypeAffectingGroups.Add(archeType, groupSet.ToArray());
             return archeType;
         }

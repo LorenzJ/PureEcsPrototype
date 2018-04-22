@@ -19,7 +19,7 @@ namespace Game
             world.Add(player, new Position { vector = new Vertex2f(0) });
             world.Add(player, new Heading { vector = new Vertex2f(1) });
 
-            var archeType = world.CreateArcheType(typeof(Position), typeof(Heading));
+            var archeType = world.CreateArchetype(typeof(Position), typeof(Heading));
             for (int i = 0; i < 100000; i++)
             {
                 var entity = world.CreateEntity(archeType);
