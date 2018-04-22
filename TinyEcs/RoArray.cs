@@ -14,6 +14,7 @@
         }
 
         public static implicit operator RoArray<T>(T[] items) => new RoArray<T>(items);
+        public static explicit operator T[](RoArray<T> roArray) => roArray.items;
 
         /// <summary>
         /// Get a read-only reference to an item.

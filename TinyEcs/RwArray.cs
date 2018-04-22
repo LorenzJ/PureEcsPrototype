@@ -14,6 +14,7 @@
         }
 
         public static implicit operator RwArray<T>(T[] items) => new RwArray<T>(items);
+        public static explicit operator T[](RwArray<T> rwArray) => rwArray.items;
 
         /// <summary>
         /// Get a reference to an item.
