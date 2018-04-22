@@ -1,4 +1,4 @@
-﻿using Game.Components;
+﻿using Game.Components.Transform;
 using OpenGL;
 using TinyEcs;
 
@@ -8,8 +8,6 @@ namespace Game
     {
         private World world;
         private Entity player;
-        private UpdateMessage updateMessage;
-        private LateUpdateMessage lateUpdateMessage;
 
         public World World { get => world; }
 
@@ -19,17 +17,16 @@ namespace Game
 
             player = world.CreateEntity();
             world.Add(player, new Position { vector = new Vertex2f(0) });
-            world.Add(player, new Direction { vector = new Vertex2f(1) });
+            world.Add(player, new Heading { vector = new Vertex2f(1) });
 
+            var archeType = world.CreateArcheType(typeof(Position), typeof(Heading));
             for (int i = 0; i < 100000; i++)
             {
-                var entity = world.CreateEntity();
-                world.Add(entity, new Position { vector = new Vertex2f(-1) });
-                world.Add(entity, new Direction { vector = new Vertex2f(2) });
+                var entity = world.CreateEntity(archeType);
+                world.Get<Position>(entity).vector = new Vertex2f(i * 0.2f, 100);
+                world.Get<Heading>(entity).vector = new Vertex2f(0.1f, 0);
             }
 
-            updateMessage = new UpdateMessage(1 / 60.0f);
-            lateUpdateMessage = new LateUpdateMessage(1 / 60.0f);
         }
 
         public void Update(float deltaTime)
