@@ -9,6 +9,8 @@ namespace WindowsGame
         private Game.Game game;
         private DateTime previousTime;
         private DateTime currentTime;
+        private double accumulatedTime;
+        private double timeStep = 1 / 60.0;
 
         public GameForm()
         {
@@ -29,10 +31,15 @@ namespace WindowsGame
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            previousTime = currentTime;
             currentTime = DateTime.Now;
             var deltaTime = (currentTime - previousTime).TotalSeconds;
-            game.Update((float)deltaTime);
+            previousTime = currentTime;
+            accumulatedTime += deltaTime;
+            while (accumulatedTime > 0)
+            {
+                accumulatedTime -= timeStep;
+                game.Update((float)timeStep);
+            }
             Text = $"Game ({1 / deltaTime} fps";
             Invalidate();
         }

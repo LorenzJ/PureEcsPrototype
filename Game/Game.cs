@@ -21,7 +21,7 @@ namespace Game
             world.Add(player, new Position { vector = new Vertex2f(0) });
             world.Add(player, new Direction { vector = new Vertex2f(1) });
 
-            for (int i = 0; i < 500000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 var entity = world.CreateEntity();
                 world.Add(entity, new Position { vector = new Vertex2f(-1) });
