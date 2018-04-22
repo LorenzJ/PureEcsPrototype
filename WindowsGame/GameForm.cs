@@ -33,6 +33,7 @@ namespace WindowsGame
             currentTime = DateTime.Now;
             var deltaTime = (currentTime - previousTime).TotalSeconds;
             game.Update((float)deltaTime);
+            Text = $"Game ({1 / deltaTime} fps";
             Invalidate();
         }
     }
