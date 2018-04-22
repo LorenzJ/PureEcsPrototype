@@ -13,7 +13,7 @@ namespace TinyEcs
         private HashSet<Type> componentTypes = new HashSet<Type>();
         private object[] arguments = new object[] { null };
 
-        public ComponentGroup(Type[] readTypes, Type[] writeTypes, int size)
+        internal ComponentGroup(Type[] readTypes, Type[] writeTypes, int size)
         {
             foreach (var type in readTypes)
             {
@@ -75,12 +75,29 @@ namespace TinyEcs
             }
         }
 
-        public int Length => length;
-        public RArray<Entity> Entities => new RArray<Entity>(entities);
+        internal void RemoveIfExists(Entity entity)
+        {
+            var index = Array.BinarySearch(entities, entity);
+            if (index < 0)
+            {
+                return;
+            }
+            else
+            {
+                length--;
+                if (index >= 0 && index != length)
+                {
+                    Array.Copy(entities, index + 1, entities, index, length - index);
+                }
+            }
+        }
 
-        public RArray<T> GetRead<T>()
+        public int Length => length;
+        public RoArray<Entity> Entities => new RoArray<Entity>(entities);
+
+        public RoArray<T> GetRead<T>()
             where T : struct, IComponent
-            => new RArray<T>(readMap[typeof(T)] as T[]);
+            => new RoArray<T>(readMap[typeof(T)] as T[]);
 
         internal void AddIfDoesNotExist(Entity entity)
         {

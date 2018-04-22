@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace TinyEcs
 {
-    public partial class World
+    /// <summary>
+    /// The world class.
+    /// Can not be inherited from.
+    /// Use World.Create() to create an instance.
+    /// </summary>
+    public sealed partial class World
     {
         private const int initialSize = 2048;
         private int size = initialSize;
@@ -22,6 +27,10 @@ namespace TinyEcs
         private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
         private Lookup<Type, ISystem> systemMessageMap;
 
+        /// <summary>
+        /// Create a new Entity handle
+        /// </summary>
+        /// <returns>Entity handle</returns>
         public Entity CreateEntity()
         {
             // Try to fill open spots
@@ -47,6 +56,12 @@ namespace TinyEcs
             }
         }
 
+        /// <summary>
+        /// Link a component to an entity
+        /// </summary>
+        /// <typeparam name="T">The type of component to add</typeparam>
+        /// <param name="entity">The entity handle</param>
+        /// <param name="component">A component instance of type T</param>
         public void Add<T>(Entity entity, T component)
             where T : struct, IComponent
         {
@@ -57,9 +72,36 @@ namespace TinyEcs
             }
         }
 
-        public ref T Get<T>(Entity entity)
-            where T : struct, IComponent => ref (componentContainerMap[typeof(T)] as ComponentContainer<T>)[entity];
+        /// <summary>
+        /// Unlink a component from an entity
+        /// </summary>
+        /// <typeparam name="T">The type of the component to unlink</typeparam>
+        /// <param name="entity">The target entity handle</param>
+        public void Remove<T>(Entity entity)
+            where T : struct, IComponent
+        {
+            var affectedGroups = componentGroups.Where(g => g.Contains(typeof(T)));
+            foreach (var group in affectedGroups)
+            {
+                group.RemoveIfExists(entity);
+            }
+        }
 
+        /// <summary>
+        /// Get a reference to a component
+        /// </summary>
+        /// <typeparam name="T">The type of component</typeparam>
+        /// <param name="entity">The entity linked to the component</param>
+        /// <returns>component reference</returns>
+        public ref T Get<T>(Entity entity)
+            where T : struct, IComponent
+            => ref (componentContainerMap[typeof(T)] as ComponentContainer<T>)[entity];
+
+        /// <summary>
+        /// Send a message.
+        /// All systems responding to the type of the message will execute.
+        /// </summary>
+        /// <param name="message">The message to send</param>
         public void Post(IMessage message)
         {
             var systems = systemMessageMap[message.GetType()];
@@ -69,6 +111,13 @@ namespace TinyEcs
             Parallel.ForEach(injectors, injector => injector.Unpack(componentContainerMap));
         }
 
+        /// <summary>
+        /// Create a world instance.
+        /// Multiple worlds can be created if desired.
+        /// Will look for and register all loaded systems.
+        /// System instances are unique for each world.
+        /// </summary>
+        /// <returns>New world instance</returns>
         public static World Create()
         {
             var world = new World();
@@ -140,7 +189,7 @@ namespace TinyEcs
                             var genericFields = fields
                                 .Where(fi => fi.FieldType.IsGenericType);
                             var readFields = genericFields
-                                .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RArray<>));
+                                .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RoArray<>));
                             var writeFields = genericFields
                                 .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RwArray<>));
 

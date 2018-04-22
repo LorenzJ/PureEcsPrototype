@@ -2,6 +2,9 @@
 
 namespace TinyEcs
 {
+    /// <summary>
+    /// A handle to identify and link components.
+    /// </summary>
     public struct Entity : IEquatable<Entity>, IComparable<Entity>
     {
         internal int handle;

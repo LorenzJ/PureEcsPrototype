@@ -4,6 +4,10 @@
     {
         void Execute(World world, IMessage message);
     }
+    /// <summary>
+    /// Base class for systems.
+    /// </summary>
+    /// <typeparam name="T">Type of message to respond to.</typeparam>
     public abstract class System<T> : ISystem
         where T : IMessage
     {

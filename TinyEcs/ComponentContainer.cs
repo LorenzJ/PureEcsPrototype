@@ -9,7 +9,7 @@ namespace TinyEcs
         void Unpack(Entity[] entities, object src, int length);
     }
 
-    public class ComponentContainer<T> : IComponentContainer
+    internal class ComponentContainer<T> : IComponentContainer
         where T: struct, IComponent
     {
         private T[] items;

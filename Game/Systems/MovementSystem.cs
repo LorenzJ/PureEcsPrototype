@@ -1,6 +1,6 @@
 ﻿using TinyEcs;
-using Game.Components;
 using System.Threading.Tasks;
+using Game.Components.Transform;
 
 namespace Game.Systems
 {
@@ -11,7 +11,7 @@ namespace Game.Systems
         {
             public int length = default;
             public RwArray<Position> positions = default;
-            public RArray<Direction> directions = default;
+            public RoArray<Heading> directions = default;
         }
         [Group] Data data;
 

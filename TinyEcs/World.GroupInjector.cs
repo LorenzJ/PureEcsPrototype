@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace TinyEcs
 {
-    public partial class World
+    public sealed partial class World
     {
         private class GroupInjector
         {
@@ -34,7 +34,7 @@ namespace TinyEcs
                     var constructor = wrappedArrayType.GetConstructor(new Type[] { rawArrayType });
                     this.writeFields[i] = (type, fieldInfo, constructor);
                 }
-                var RArrayType = typeof(RArray<>);
+                var RArrayType = typeof(RoArray<>);
                 this.readFields = new(Type, FieldInfo, ConstructorInfo)[readFields.Length];
                 for (var i = 0; i < readFields.Length; i++)
                 {
