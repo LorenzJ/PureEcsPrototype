@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace TinyEcs
 {
@@ -17,6 +18,7 @@ namespace TinyEcs
         private int size = initialSize;
         private int highestEntityHandle = 0;
         private Queue<int> openEntityHandles = new Queue<int>();
+        private List<Type>[] linkedComponentTypes;
 
         private Dictionary<Type, object> resourceMap = new Dictionary<Type, object>();
         private Dictionary<(Type[], Type[]), ComponentGroup> groupMap = new Dictionary<(Type[], Type[]), ComponentGroup>();
@@ -29,12 +31,15 @@ namespace TinyEcs
         private Lookup<Type, ISystem> systemMessageMap;
         private int archeTypeId;
 
+        private bool executingSystems = false;
+
         /// <summary>
         /// Create a new Entity handle
         /// </summary>
         /// <returns>Entity handle</returns>
         public Entity CreateEntity()
         {
+            Debug.Assert(!executingSystems, "Can't create an entity while a system is being executed");
             // Try to fill open spots
             if (openEntityHandles.Count > 0)
             {
@@ -48,6 +53,8 @@ namespace TinyEcs
                 if (handle >= size)
                 {
                     size *= 2;
+                    Array.Resize(ref linkedComponentTypes, size);
+
                     foreach (var entry in componentContainerMap)
                     {
                         entry.Value.Resize(size);
@@ -65,10 +72,21 @@ namespace TinyEcs
             {
                 group.Add(entity);
             }
+            var componentTypes = GetLinkedComponentTypes(entity);
+            componentTypes.AddRange(archeType.types);
             return entity;
         }
 
-        public Archetype CreateArcheType(params Type[] types)
+        private List<Type> GetLinkedComponentTypes(Entity entity)
+        {
+            if (linkedComponentTypes[entity.handle] == null)
+            {
+                linkedComponentTypes[entity.handle] = new List<Type>();
+            }
+            return linkedComponentTypes[entity.handle];
+        }
+
+        public Archetype CreateArchetype(params Type[] types)
         {
             var groupSet = new HashSet<ComponentGroup>();
             foreach (var type in types)
@@ -80,16 +98,24 @@ namespace TinyEcs
                 }
             }
 
-            var archeType = new Archetype(archeTypeId++);
+            var archeType = new Archetype(archeTypeId++, types);
             archeTypeAffectingGroups.Add(archeType, groupSet.ToArray());
             return archeType;
         }
 
-        /*public void DestroyEntity(Entity entity)
+        public void DestroyEntity(Entity entity)
         {
+            Debug.Assert(!executingSystems, "Can't destroy an entity while a system is executing");
             openEntityHandles.Enqueue(entity.handle);
 
-        }*/
+            var componentList = GetLinkedComponentTypes(entity);
+            foreach (var componentType in componentList.ToArray())
+            {
+                Remove(entity, componentType);
+            }
+        }
+
+        public T GetResource<T>() where T : class => resourceMap[typeof(T)] as T;
 
         /// <summary>
         /// Link a component to an entity
@@ -100,11 +126,14 @@ namespace TinyEcs
         public void Add<T>(Entity entity, T component)
             where T : struct, IComponent
         {
+            Debug.Assert(!executingSystems, "Can't add components to an entity while a system is being executed");
             var affectedGroups = componentGroups.Where(g => g.Contains(component.GetType()));
             foreach (var group in affectedGroups)
             {
                 group.AddIfDoesNotExist(entity);
             }
+            var componentList = GetLinkedComponentTypes(entity);
+            componentList.Add(typeof(T));
         }
 
         /// <summary>
@@ -115,11 +144,19 @@ namespace TinyEcs
         public void Remove<T>(Entity entity)
             where T : struct, IComponent
         {
-            var affectedGroups = componentGroups.Where(g => g.Contains(typeof(T)));
+            Remove(entity, typeof(T));
+        }
+
+        public void Remove(Entity entity, Type type)
+        {
+            Debug.Assert(!executingSystems, "Can't remove a component while a system is being executed");
+            var affectedGroups = componentGroups.Where(g => g.Contains(type));
             foreach (var group in affectedGroups)
             {
                 group.RemoveIfExists(entity);
             }
+            var componentList = GetLinkedComponentTypes(entity);
+            componentList.Remove(type);
         }
 
         /// <summary>
@@ -139,11 +176,13 @@ namespace TinyEcs
         /// <param name="message">The message to send</param>
         public void Post(IMessage message)
         {
+            executingSystems = true;
             var systems = systemMessageMap[message.GetType()];
             var injectors = systems.SelectMany(system => groupInjectorMap[system]);
             Parallel.ForEach(injectors, injector => injector.Inject(componentContainerMap));
             Parallel.ForEach(systems, system => system.Execute(this, message));
             Parallel.ForEach(injectors, injector => injector.Unpack(componentContainerMap));
+            executingSystems = false;
         }
 
         /// <summary>
@@ -163,7 +202,7 @@ namespace TinyEcs
             var resourceMap = new Dictionary<Type, object>();
 
             var systemTypes = types
-                .Where(type => type.BaseType != null && type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == typeof(System<>));
+                .Where(type => type.BaseType != null && type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == typeof(ComponentSystem<>));
 
             var componentTypes = types
                 .Where(type => type.IsValueType && type.GetInterfaces().Contains(typeof(IComponent)));
