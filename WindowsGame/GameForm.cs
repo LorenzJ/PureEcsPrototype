@@ -25,6 +25,7 @@ namespace WindowsGame
         private void GameForm_Load(object sender, EventArgs e)
         {
             game = new Game.Game();
+            GC.Collect();
             previousTime = DateTime.Now;
             timer.Start();
         }
@@ -41,7 +42,7 @@ namespace WindowsGame
                 game.Update((float)timeStep);
             }
             Text = $"Game ({1 / deltaTime} fps";
-            Invalidate();
+            glControl.Invalidate();
         }
     }
 }
