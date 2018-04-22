@@ -25,7 +25,9 @@ namespace TinyEcs
 
         private List<ComponentGroup> componentGroups = new List<ComponentGroup>();
         private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
+        private Dictionary<ArcheType, ComponentGroup[]> archeTypeAffectingGroups = new Dictionary<ArcheType, ComponentGroup[]>();
         private Lookup<Type, ISystem> systemMessageMap;
+        private int archeTypeId;
 
         /// <summary>
         /// Create a new Entity handle
@@ -55,6 +57,39 @@ namespace TinyEcs
                 return new Entity(handle);
             }
         }
+
+        public Entity CreateEntity(ArcheType archeType)
+        {
+            Entity entity = CreateEntity();
+            foreach (var group in archeTypeAffectingGroups[archeType])
+            {
+                group.Add(entity);
+            }
+            return entity;
+        }
+
+        public ArcheType CreateArcheType(params Type[] types)
+        {
+            var groupSet = new HashSet<ComponentGroup>();
+            foreach (var type in types)
+            {
+                var groupList = componentGroups.Where(g => g.Contains(type));
+                foreach (var group in groupList)
+                {
+                    groupSet.Add(group);
+                }
+            }
+
+            var archeType = new ArcheType(archeTypeId++);
+            archeTypeAffectingGroups.Add(archeType, groupSet.ToArray());
+            return archeType;
+        }
+
+        /*public void DestroyEntity(Entity entity)
+        {
+            openEntityHandles.Enqueue(entity.handle);
+
+        }*/
 
         /// <summary>
         /// Link a component to an entity

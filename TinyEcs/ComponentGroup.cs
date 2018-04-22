@@ -75,6 +75,25 @@ namespace TinyEcs
             }
         }
 
+        internal void Add(Entity entity)
+        {
+            if (entities.Length == length)
+            {
+                Resize(length * 2);
+            }
+            entities[length++] = entity;
+            BubbleDown(entities, length);
+        }
+
+        internal void AddIfDoesNotExist(Entity entity)
+        {
+            var index = Array.BinarySearch(entities, 0, length, entity);
+            if (index < 0)
+            {
+                Add(entity);
+            }
+        }
+
         internal void RemoveIfExists(Entity entity)
         {
             var index = Array.BinarySearch(entities, entity);
@@ -99,19 +118,7 @@ namespace TinyEcs
             where T : struct, IComponent
             => new RoArray<T>(readMap[typeof(T)] as T[]);
 
-        internal void AddIfDoesNotExist(Entity entity)
-        {
-            var index = Array.BinarySearch(entities, 0, length, entity);
-            if (index < 0)
-            {
-                if (entities.Length == length)
-                {
-                    Resize(length * 2);
-                }
-                entities[length++] = entity;
-                BubbleDown(entities, length);
-            }
-        }
+        
 
         private void BubbleDown(Entity[] entities, int length)
         {
