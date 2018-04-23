@@ -8,8 +8,8 @@ namespace TinyEcs
     {
         private int length;
         private Entity[] entities;
-        private SortedList<Type, object> readMap = new SortedList<Type, object>();
-        private SortedList<Type, object> writeMap = new SortedList<Type, object>();
+        private Dictionary<Type, object> readMap = new Dictionary<Type, object>();
+        private Dictionary<Type, object> writeMap = new Dictionary<Type, object>();
         private HashSet<Type> componentTypes = new HashSet<Type>();
         private object[] arguments = new object[] { null };
 

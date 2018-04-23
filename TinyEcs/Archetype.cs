@@ -5,10 +5,12 @@ namespace TinyEcs
     public class Archetype : IEquatable<Archetype>
     {
         private int id;
-        
-        internal Archetype(int id)
+        internal Type[] types;
+
+        internal Archetype(int id, Type[] types)
         {
             this.id = id;
+            this.types = types;
         }
 
         public override bool Equals(object obj) => Equals(obj as Archetype);

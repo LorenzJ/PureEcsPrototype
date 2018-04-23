@@ -18,9 +18,9 @@ namespace TinyEcs
         private int size = initialSize;
         private int highestEntityHandle = 0;
         private Queue<int> openEntityHandles = new Queue<int>();
-        private List<Type>[] linkedComponentTypes;
+        private List<Type>[] linkedComponentTypes = new List<Type>[initialSize];
 
-        private Dictionary<Type, object> resourceMap = new Dictionary<Type, object>();
+        private Dictionary<Type, Resource> resourceMap = new Dictionary<Type, Resource>();
         private Dictionary<(Type[], Type[]), ComponentGroup> groupMap = new Dictionary<(Type[], Type[]), ComponentGroup>();
 
         private Dictionary<Type, IComponentContainer> componentContainerMap = new Dictionary<Type, IComponentContainer>();
@@ -29,7 +29,7 @@ namespace TinyEcs
         private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
         private Dictionary<Archetype, ComponentGroup[]> archeTypeAffectingGroups = new Dictionary<Archetype, ComponentGroup[]>();
         private Lookup<Type, ISystem> systemMessageMap;
-        private int archeTypeId;
+        private int archetypeId;
 
         private bool executingSystems = false;
 
@@ -86,7 +86,7 @@ namespace TinyEcs
             return linkedComponentTypes[entity.handle];
         }
 
-        public Archetype CreateArchetype(params Type[] types)
+        private HashSet<ComponentGroup> GetAffectedComponentGroups(Type[] types)
         {
             var groupSet = new HashSet<ComponentGroup>();
             foreach (var type in types)
@@ -98,9 +98,27 @@ namespace TinyEcs
                 }
             }
 
-            var archeType = new Archetype(archeTypeId++, types);
-            archeTypeAffectingGroups.Add(archeType, groupSet.ToArray());
-            return archeType;
+            return groupSet;
+        }
+
+        public Archetype CreateArchetype(params Type[] types)
+        {
+            HashSet<ComponentGroup> groupSet = GetAffectedComponentGroups(types);
+
+            var archetype = new Archetype(archetypeId++, types);
+            archeTypeAffectingGroups.Add(archetype, groupSet.ToArray());
+            return archetype;
+        }
+
+        public Archetype DeriveArchetype(Archetype parent, params Type[] types)
+        {
+            var parentGroups = archeTypeAffectingGroups[parent];
+            var childGroups = GetAffectedComponentGroups(types);
+            var combinedTypes = parent.types.Union(types);
+            var combinedGroups = parentGroups.Union(childGroups);
+            var archetype = new Archetype(archetypeId++, combinedTypes.ToArray());
+            archeTypeAffectingGroups.Add(archetype, combinedGroups.ToArray());
+            return archetype;
         }
 
         public void DestroyEntity(Entity entity)
@@ -199,7 +217,10 @@ namespace TinyEcs
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var types = assemblies.SelectMany(asm => asm.DefinedTypes);
 
-            var resourceMap = new Dictionary<Type, object>();
+            world.resourceMap = new Dictionary<Type, Resource>();
+
+            var resourceTypes = types
+                .Where(type => type.BaseType != null && type.IsSubclassOf(typeof(Resource)));
 
             var systemTypes = types
                 .Where(type => type.BaseType != null && type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == typeof(ComponentSystem<>));
@@ -210,6 +231,7 @@ namespace TinyEcs
             var systems = new List<ISystem>();
 
             var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            CreateResources();
             CreateComponentContainers();
             CreateSystems();
 
@@ -217,6 +239,13 @@ namespace TinyEcs
                 .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
             return world;
 
+            void CreateResources()
+            {
+                foreach (var resourceType in resourceTypes)
+                {
+                    world.resourceMap.Add(resourceType, Activator.CreateInstance(resourceType) as Resource);
+                }
+            }
             void CreateComponentContainers()
             {
                 foreach (var componentType in componentTypes)
@@ -287,14 +316,7 @@ namespace TinyEcs
             {
                 foreach (var resourceField in resourceFields)
                 {
-                    // Create or get the resource
-                    if (!resourceMap.TryGetValue(resourceField.FieldType, out var resource))
-                    {
-                        resource = resourceField.FieldType.GetConstructor(Type.EmptyTypes).Invoke(null);
-                        resourceMap.Add(resourceField.FieldType, resource);
-                    }
-                    // Inject the resource
-                    resourceField.SetValue(systemInstance, resource);
+                    resourceField.SetValue(systemInstance, world.resourceMap[resourceField.FieldType]);
                 }
             }
         }

@@ -2,8 +2,9 @@
 
 namespace WindowsGame
 {
-    public class Renderer
+    public class Renderer : Resource
     {
+
         public Renderer()
         {
 

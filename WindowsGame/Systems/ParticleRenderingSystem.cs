@@ -1,7 +1,6 @@
 ﻿using Game;
 using Game.Components;
 using Game.Components.Transform;
-using System;
 using TinyEcs;
 
 namespace WindowsGame.Systems
@@ -20,7 +19,7 @@ namespace WindowsGame.Systems
         protected override void Execute(World world, UpdateMessage message)
         {
             
-            throw new NotImplementedException();
+            
         }
     }
 }
