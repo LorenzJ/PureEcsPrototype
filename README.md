@@ -12,8 +12,11 @@ The core ECS system.
 ## Game
 A small simple game for testing the usability of the TinyEcs API.
 
+## GameGl
+An OpenGL renderer for "Game".
+
 ## WindowsGame
 A windows forms project for rendering "Game".
 
 ## GameScript
-A scripting language for TinyEcs
+A scripting language for TinyEcs.
