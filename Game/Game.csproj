@@ -13,16 +13,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenGL.Net.Math" Version="0.7.1" />
+    <Compile Remove="Systems\CollisionDetection\**" />
+    <Compile Remove="Systems\Player\**" />
+    <EmbeddedResource Remove="Systems\CollisionDetection\**" />
+    <EmbeddedResource Remove="Systems\Player\**" />
+    <None Remove="Systems\CollisionDetection\**" />
+    <None Remove="Systems\Player\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenGL.Net.Math" Version="0.7.1">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TinyEcs\TinyEcs.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Systems\CollisionDetection\" />
-    <Folder Include="Systems\Player\" />
   </ItemGroup>
 
 </Project>

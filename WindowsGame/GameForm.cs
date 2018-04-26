@@ -1,5 +1,7 @@
-﻿using OpenGL;
+﻿using GameGl;
+using OpenGL;
 using System;
+using System.Text;
 using System.Windows.Forms;
 
 namespace WindowsGame
@@ -11,6 +13,7 @@ namespace WindowsGame
         private DateTime currentTime;
         private double accumulatedTime;
         private double timeStep = 1 / 60.0;
+        private Renderer renderer;
 
         public GameForm()
         {
@@ -19,13 +22,15 @@ namespace WindowsGame
 
         private void GlControl1_ContextCreated(object sender, GlControlEventArgs e)
         {
-            
+            game = new Game.Game();
+            renderer = game.World.GetResource<Renderer>();
+
+            Gl.Enable(EnableCap.Blend);
+            Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
         private void GameForm_Load(object sender, EventArgs e)
         {
-            game = new Game.Game();
-            GC.Collect();
             previousTime = DateTime.Now;
             timer.Start();
         }
@@ -41,8 +46,19 @@ namespace WindowsGame
                 accumulatedTime -= timeStep;
                 game.Update((float)timeStep);
             }
-            Text = $"Game ({1 / deltaTime} fps";
+            Text = $"Game ({1 / deltaTime} fps)";
             glControl.Invalidate();
+        }
+
+        private void glControl_Render(object sender, GlControlEventArgs e)
+        {
+            Gl.Clear(ClearBufferMask.ColorBufferBit);
+            renderer.Render(game.Time);
+        }
+
+        private void glControl_Resize(object sender, EventArgs e)
+        {
+            Gl.Viewport(0, 0, ClientSize.Width, ClientSize.Height);
         }
     }
 }

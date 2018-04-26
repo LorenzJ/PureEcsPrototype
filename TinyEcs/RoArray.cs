@@ -1,9 +1,9 @@
 ﻿namespace TinyEcs
 {
     /// <summary>
-    /// A read-only array of components.
+    /// A read-only array.
     /// </summary>
-    /// <typeparam name="T">Element type of the component array</typeparam>
+    /// <typeparam name="T">Element type</typeparam>
     public struct RoArray<T>
     {
         internal T[] items;

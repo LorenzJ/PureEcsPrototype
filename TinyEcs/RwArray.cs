@@ -1,9 +1,9 @@
 ﻿namespace TinyEcs
 {
     /// <summary>
-    /// A read-write array of components.
+    /// A read-write array.
     /// </summary>
-    /// <typeparam name="T">Element type of components</typeparam>
+    /// <typeparam name="T">Element type</typeparam>
     public struct RwArray<T>
     {
         private T[] items;

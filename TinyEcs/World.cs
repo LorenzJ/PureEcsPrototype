@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
 
 namespace TinyEcs
 {
@@ -21,7 +22,6 @@ namespace TinyEcs
         private List<Type>[] linkedComponentTypes = new List<Type>[initialSize];
 
         private Dictionary<Type, Resource> resourceMap = new Dictionary<Type, Resource>();
-        private Dictionary<(Type[], Type[]), ComponentGroup> groupMap = new Dictionary<(Type[], Type[]), ComponentGroup>();
 
         private Dictionary<Type, IComponentContainer> componentContainerMap = new Dictionary<Type, IComponentContainer>();
 
@@ -110,6 +110,16 @@ namespace TinyEcs
             return archetype;
         }
 
+        public Archetype DeriveArchetype(IEnumerable<Archetype> parents, IEnumerable<Type> types)
+        {
+            var parentGroups = parents.SelectMany(p => archeTypeAffectingGroups[p]);
+            var childGroups = GetAffectedComponentGroups(types.ToArray());
+            var combinedTypes = parents.SelectMany(p => p.types).Union(types);
+            var combinedGroups = parentGroups.Union(childGroups);
+            var archetype = new Archetype(archetypeId++, combinedTypes.ToArray());
+            archeTypeAffectingGroups.Add(archetype, combinedGroups.ToArray());
+            return archetype;
+        }
         public Archetype DeriveArchetype(Archetype parent, params Type[] types)
         {
             var parentGroups = archeTypeAffectingGroups[parent];
@@ -126,14 +136,14 @@ namespace TinyEcs
             Debug.Assert(!executingSystems, "Can't destroy an entity while a system is executing");
             openEntityHandles.Enqueue(entity.handle);
 
-            var componentList = GetLinkedComponentTypes(entity);
-            foreach (var componentType in componentList.ToArray())
+            foreach (var group in componentGroups)
             {
-                Remove(entity, componentType);
+                group.RemoveIfExists(entity);
             }
+            linkedComponentTypes[entity.handle].Clear();
         }
 
-        public T GetResource<T>() where T : class => resourceMap[typeof(T)] as T;
+        public T GetResource<T>() where T : Resource => resourceMap[typeof(T)] as T;
 
         /// <summary>
         /// Link a component to an entity
@@ -194,13 +204,18 @@ namespace TinyEcs
         /// <param name="message">The message to send</param>
         public void Post(IMessage message)
         {
-            executingSystems = true;
+            executingSystems = true; // Temporary solution
             var systems = systemMessageMap[message.GetType()];
             var injectors = systems.SelectMany(system => groupInjectorMap[system]);
             Parallel.ForEach(injectors, injector => injector.Inject(componentContainerMap));
             Parallel.ForEach(systems, system => system.Execute(this, message));
             Parallel.ForEach(injectors, injector => injector.Unpack(componentContainerMap));
             executingSystems = false;
+
+            foreach (var entry in resourceMap)
+            {
+                entry.Value.Flush(message);
+            }
         }
 
         /// <summary>
@@ -235,6 +250,11 @@ namespace TinyEcs
             CreateComponentContainers();
             CreateSystems();
 
+            foreach (var entry in world.resourceMap)
+            {
+                entry.Value.OnLoad(world);
+            }
+
             world.systemMessageMap = systems
                 .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
             return world;
@@ -252,6 +272,7 @@ namespace TinyEcs
                 {
                     var componentContainerType = typeof(ComponentContainer<>).MakeGenericType(new Type[] { componentType });
                     var constructor = componentContainerType.GetConstructor(new Type[] { typeof(int) });
+                    
                     world.componentContainerMap.Add(componentType, constructor.Invoke(new object[] { initialSize }) as IComponentContainer);
                 }
             }
@@ -288,11 +309,11 @@ namespace TinyEcs
 
                             var fields = groupFieldType.GetFields(bindingFlags);
                             var lengthField = groupFieldType.GetField("length");
-                            var entityField = fields.Where(fi => fi.FieldType == typeof(Entity[])).SingleOrDefault();
+                            var entityField = fields.Where(fi => fi.FieldType == typeof(RoArray<Entity>)).SingleOrDefault();
                             var genericFields = fields
                                 .Where(fi => fi.FieldType.IsGenericType);
                             var readFields = genericFields
-                                .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RoArray<>));
+                                .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RoArray<>) && fi.FieldType != typeof(RoArray<Entity>));
                             var writeFields = genericFields
                                 .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RwArray<>));
 

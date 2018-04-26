@@ -1,5 +1,8 @@
-﻿using Game.Components.Transform;
-using OpenGL;
+﻿using Game.Components;
+using Game.Components.Colliders;
+using Game.Components.Transform;
+using Game.Components.Utilities;
+using System;
 using TinyEcs;
 
 namespace Game
@@ -7,30 +10,37 @@ namespace Game
     public class Game
     {
         private World world;
-        private Entity player;
+        private float time;
 
         public World World { get => world; }
+        public float Time { get => time; set => time = value; }
 
         public Game()
         {
             world = World.Create();
+            var shipType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(ShipTag), typeof(Circle));
+            var playerShipType = world.DeriveArchetype(shipType, typeof(PlayerTag));
+            var enemyShipType = world.DeriveArchetype(shipType, typeof(EnemyTag));
 
-            player = world.CreateEntity();
-            world.Add(player, new Position { vector = new Vertex2f(0) });
-            world.Add(player, new Heading { vector = new Vertex2f(1) });
+            var bulletType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(BulletTag), typeof(Circle), typeof(Ttl));
+            var playerBulletType = world.DeriveArchetype(bulletType, typeof(PlayerTag));
+            var enemyBulletType = world.DeriveArchetype(bulletType, typeof(EnemyTag));
 
-            var archeType = world.CreateArchetype(typeof(Position), typeof(Heading));
-            for (int i = 0; i < 100000; i++)
+            var rng = new Random();
+            float nextFloat() => (float)(rng.NextDouble() - 0.5) * 2.0f;
+            for (int i = 0; i < 2000; i++)
             {
-                var entity = world.CreateEntity(archeType);
-                world.Get<Position>(entity).vector = new Vertex2f(i * 0.2f, 100);
-                world.Get<Heading>(entity).vector = new Vertex2f(0.1f, 0);
+                var bullet = world.CreateEntity(playerBulletType);
+                world.Get<Position>(bullet).vector = new OpenGL.Vertex2f(nextFloat(), nextFloat());
+                world.Get<Heading>(bullet).vector = new OpenGL.Vertex2f(nextFloat(), nextFloat());
+                world.Get<Ttl>(bullet).value = (float)(rng.NextDouble() * 10) + 5;
             }
-
+            
         }
 
         public void Update(float deltaTime)
         {
+            time += deltaTime;
             world.Post(new UpdateMessage(deltaTime));
             world.Post(new LateUpdateMessage(deltaTime));
         }

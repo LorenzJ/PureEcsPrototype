@@ -2,7 +2,8 @@
 
 namespace Game.Components
 {
-    struct PlayerTag : IComponent { }
-    struct EnemyTag : IComponent { }
-    public struct ParticleTag : IComponent { }
+    public struct PlayerTag : IComponent { }
+    public struct EnemyTag : IComponent { }
+    public struct BulletTag : IComponent { }
+    public struct ShipTag : IComponent { }
 }

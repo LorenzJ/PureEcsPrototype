@@ -13,6 +13,9 @@ namespace TinyEcs
         private HashSet<Type> componentTypes = new HashSet<Type>();
         private object[] arguments = new object[] { null };
 
+        public int Length => length;
+        public RoArray<Entity> Entities => new RoArray<Entity>(entities);
+
         internal ComponentGroup(Type[] readTypes, Type[] writeTypes, int size)
         {
             foreach (var type in readTypes)
@@ -96,7 +99,7 @@ namespace TinyEcs
 
         internal void RemoveIfExists(Entity entity)
         {
-            var index = Array.BinarySearch(entities, entity);
+            var index = Array.BinarySearch(entities, 0, length, entity);
             if (index < 0)
             {
                 return;
@@ -111,14 +114,11 @@ namespace TinyEcs
             }
         }
 
-        public int Length => length;
-        public RoArray<Entity> Entities => new RoArray<Entity>(entities);
+
 
         public RoArray<T> GetRead<T>()
             where T : struct, IComponent
             => new RoArray<T>(readMap[typeof(T)] as T[]);
-
-        
 
         private void BubbleDown(Entity[] entities, int length)
         {

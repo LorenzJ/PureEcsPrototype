@@ -47,6 +47,8 @@
             this.glControl.StencilBits = ((uint)(0u));
             this.glControl.TabIndex = 0;
             this.glControl.ContextCreated += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GlControl1_ContextCreated);
+            this.glControl.Render += new System.EventHandler<OpenGL.GlControlEventArgs>(this.glControl_Render);
+            this.glControl.Resize += new System.EventHandler(this.glControl_Resize);
             // 
             // timer
             // 

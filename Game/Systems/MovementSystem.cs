@@ -1,6 +1,7 @@
 ﻿using TinyEcs;
 using System.Threading.Tasks;
 using Game.Components.Transform;
+using System.Collections.Concurrent;
 
 namespace Game.Systems
 {
@@ -17,9 +18,14 @@ namespace Game.Systems
 
         protected override void Execute(World world, UpdateMessage message)
         {
-            Parallel.For(0, data.length, i =>
+            if (data.length == 0) return;
+            var partitioner = Partitioner.Create(0, data.length);
+            Parallel.ForEach(partitioner, partition =>
             {
-                data.positions[i].vector += data.directions[i].vector * message.DeltaTime;
+                for (var i = partition.Item1; i < partition.Item2; i++)
+                {
+                    data.positions[i].vector += data.directions[i].vector * message.DeltaTime;
+                }
             });
         }
     }
