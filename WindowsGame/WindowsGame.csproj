@@ -68,7 +68,6 @@
     <Compile Include="DebugInfoForm.Designer.cs">
       <DependentUpon>DebugInfoForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="DebugInfoSystem.cs" />
     <Compile Include="GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
