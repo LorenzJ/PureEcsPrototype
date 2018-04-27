@@ -3,7 +3,7 @@ using TinyEcs;
 
 namespace GameGl
 {
-    public class RenderSystem : ComponentSystem<UpdateMessage>
+    public class RenderSystem : ComponentSystem<RenderMessage>
     {
         [Resource] public Renderer renderer;
 
@@ -12,7 +12,7 @@ namespace GameGl
         [Group] public Players players;
         [Group] public Enemies enemies;
 
-        protected override void Execute(World world, UpdateMessage message)
+        protected override void Execute(World world, RenderMessage message)
         {
             renderer.SetPlayerBullets(playerBullets.positions, playerBullets.length);
             //renderer.QueueEnemyBullets(enemyBullets.positions, enemyBullets.length);

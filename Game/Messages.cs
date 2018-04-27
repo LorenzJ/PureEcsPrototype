@@ -22,6 +22,8 @@ namespace Game
         }
     }
 
+    public struct RenderMessage : IMessage { }
+
     public struct DetectCollisionsMessage : IMessage { }
 
     enum InputCommand

@@ -43,6 +43,7 @@ namespace Game
             time += deltaTime;
             world.Post(new UpdateMessage(deltaTime));
             world.Post(new LateUpdateMessage(deltaTime));
+            world.Post(new RenderMessage());
         }
     }
 }
