@@ -1,0 +1,34 @@
+﻿using OpenGL;
+using System;
+
+namespace GameGl.Core.Buffers
+{
+    public interface IBuffer : IBindable, IDisposable
+    {
+        uint Handle { get; }
+    }
+
+    internal static class BufferUtil
+    {
+        public static uint CreateEmpty(int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
+        {
+            var handle = Gl.CreateBuffer();
+            Gl.BufferData(bufferTarget, (uint)size, null, bufferUsage);
+            return handle;
+        }
+
+        public static uint Create(object obj, int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
+        {
+            var handle = Gl.CreateBuffer();
+            Gl.BufferData(bufferTarget, (uint)size, obj, bufferUsage);
+            return handle;
+        }
+
+        public static uint Create(IntPtr ptr, int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
+        {
+            var handle = Gl.CreateBuffer();
+            Gl.BufferData(bufferTarget, (uint)size, ptr, bufferUsage);
+            return handle;
+        }
+    }
+}

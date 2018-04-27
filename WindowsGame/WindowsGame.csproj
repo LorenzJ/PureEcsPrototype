@@ -62,6 +62,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebugInfoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DebugInfoForm.Designer.cs">
+      <DependentUpon>DebugInfoForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DebugInfoSystem.cs" />
     <Compile Include="GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -70,6 +77,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="DebugInfoForm.resx">
+      <DependentUpon>DebugInfoForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GameForm.resx">
       <DependentUpon>GameForm.cs</DependentUpon>
     </EmbeddedResource>

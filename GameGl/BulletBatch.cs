@@ -1,4 +1,8 @@
 ﻿using Game.Components.Transform;
+using GameGl.Core;
+using GameGl.Core.Buffers;
+using GameGl.Core.Shaders;
+using GameGl.Core.Uniforms;
 using GameGl.Properties;
 using OpenGL;
 using System;
@@ -13,13 +17,13 @@ namespace GameGl
         const int positionIndex = 0;
         const int offsetIndex = 1;
 
-        uint vao;
-        uint vbo;
-        uint ivbo;
-        uint program;
-        int timeUniform;
+        VertexArray vao;
+        ArrayBuffer vbo;
+        ArrayBuffer ivbo;
+        ShaderProgram program;
+        FloatUniform timeUniform;
 
-        private BulletBatch(uint vao, uint vbo, uint ivbo, uint program, int timeUniform)
+        private BulletBatch(VertexArray vao, ArrayBuffer vbo, ArrayBuffer ivbo, ShaderProgram program, FloatUniform timeUniform)
         {
             this.vao = vao;
             this.vbo = vbo;
@@ -30,13 +34,13 @@ namespace GameGl
 
         public void Draw(RoArray<Position> positions, int length, float time)
         {
-            Gl.UseProgram(program);
-            Gl.Uniform1(timeUniform, time);
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, ivbo);
-            Gl.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (uint)(Marshal.SizeOf<Position>() * length), (Position[])positions);
-            Gl.BindVertexArray(vao);
+            program.Use();
+            timeUniform.Set(time);
+            ivbo.Bind();
+            ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * length, (Position[])positions);
+            vao.Bind();
             Gl.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, length);
-            Gl.BindVertexArray(0);
+            vao.Unbind();
         }
 
         public static BulletBatch CreateBulletBatch()
@@ -46,74 +50,29 @@ namespace GameGl
             BulletBatch NewBulletBatch()
             {
                 var program = CreateProgram();
-                var timeUniform = GetTimeUniform(program);
+                var timeUniform = program.GetFloatUniform("uTime");
                 var vbo = CreateVertexBuffer();
-                var ivbo = CreateInstanceBuffer();
+                var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4096, BufferUsage.DynamicDraw);
                 var vao = CreateVertexArray(vbo, ivbo);
                 return new BulletBatch(vao, vbo, ivbo, program, timeUniform);
             }
 
-            int GetTimeUniform(uint program)
+            ShaderProgram CreateProgram()
             {
-                return Gl.GetUniformLocation(program, "uTime");
+                using (var vertexShader = VertexShader.FromSource(Resources.BulletVertex))
+                using (var fragShader = FragmentShader.FromSource(Resources.BulletFrag))
+                {
+                    return ShaderProgram.LinkShaders(vertexShader, fragShader);
+                }
             }
 
-            uint CreateProgram()
-            {
-                var vertexShader = Gl.CreateShader(ShaderType.VertexShader);
-                var fragShader = Gl.CreateShader(ShaderType.FragmentShader);
-                
-                Gl.ShaderSource(vertexShader, new string[] { Resources.BulletVertex });
-                Gl.ShaderSource(fragShader, new string[] { Resources.BulletFrag });
-                Gl.CompileShader(vertexShader);
-                Gl.CompileShader(fragShader);
-
-                Gl.GetShader(vertexShader, ShaderParameterName.CompileStatus, out var compileStatus);
-                const int maxLength = 1024;
-                if (compileStatus == 0)
-                {
-                    var infoLog = new StringBuilder(maxLength);
-                    Gl.GetShaderInfoLog(vertexShader, maxLength, out var length, infoLog);
-                    throw new ShaderCompilationException($"Bullet vertex shader error: {infoLog.ToString()}");
-                }
-                Gl.GetShader(fragShader, ShaderParameterName.CompileStatus, out compileStatus);
-                if (compileStatus == 0)
-                {
-                    var infoLog = new StringBuilder(maxLength);
-                    Gl.GetShaderInfoLog(fragShader, maxLength, out var length, infoLog);
-                    throw new ShaderCompilationException($"Bullet fragment shader error: {infoLog}");
-                }
-
-                var program = Gl.CreateProgram();
-                Gl.AttachShader(program, vertexShader);
-                Gl.AttachShader(program, fragShader);
-                Gl.LinkProgram(program);
-
-                Gl.GetProgram(program, ProgramProperty.LinkStatus, out var linkStatus);
-                if (linkStatus == 0)
-                {
-                    var infoLog = new StringBuilder(maxLength);
-                    Gl.GetProgramInfoLog(program, maxLength, out var length, infoLog);
-                    throw new ProgramLinkingException($"Bullet program error: {infoLog}");
-                }
-
-                Gl.DeleteShader(vertexShader);
-                Gl.DeleteShader(fragShader);
-                return program;
-            }
-
-            uint CreateVertexBuffer()
+            ArrayBuffer CreateVertexBuffer()
             {
                 var vertices = new float[]
                 {
                     0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f
                 };
-
-                var vbo = Gl.CreateBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(sizeof(float) * vertices.Length), vertices, BufferUsage.StaticDraw);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                return vbo;
+                return ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length);
             }
 
             uint CreateInstanceBuffer()
@@ -125,9 +84,11 @@ namespace GameGl
                 return ivbo;
             }
 
-            uint CreateVertexArray(uint vbo, uint ivbo)
+            uint CreateVertexArray(ArrayBuffer vbo, ArrayBuffer ivbo)
             {
-                var vao = Gl.CreateVertexArray();
+                var builder = new VertexArrayBuilder();
+                builder.ChangeArrayBuffer(vbo);
+                builder.SetAttribute()
                 Gl.BindVertexArray(vao);
                 Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
                 Gl.VertexAttribPointer(positionIndex, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);

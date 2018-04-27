@@ -1,0 +1,30 @@
+﻿using OpenGL;
+using System;
+using System.Text;
+
+namespace GameGl.Core.Shaders
+{
+    public interface IShader : IDisposable
+    {
+        uint Handle { get; }
+    }
+
+    internal static class ShaderUtil
+    {
+        public static uint CompileShader(ShaderType shaderType, params string[] source)
+        {
+            var shader = Gl.CreateShader(ShaderType.VertexShader);
+            Gl.ShaderSource(shader, source);
+            Gl.CompileShader(shader);
+            Gl.GetShader(shader, ShaderParameterName.CompileStatus, out var compileStatus);
+            if (compileStatus == 0)
+            {
+                Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out var length);
+                var infoLog = new StringBuilder(length);
+                Gl.GetShaderInfoLog(shader, length, out var _, infoLog);
+                throw new ShaderCompilationException(infoLog.ToString());
+            }
+            return shader;
+        }
+    }
+}

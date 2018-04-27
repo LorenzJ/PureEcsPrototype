@@ -2,6 +2,9 @@
 
 namespace TinyEcs
 {
+    /// <summary>
+    /// Archetype class for faster creation of entities.
+    /// </summary>
     public class Archetype : IEquatable<Archetype>
     {
         private int id;
