@@ -72,14 +72,15 @@ namespace GameGl.Properties {
         ///void main()
         ///{
         ///    vec2 uv = Position;
+        ///	uv *= 2.0;
         ///    uv.y += uTime * 0.2;
         ///    uv.x = mod(sin(uv.y), cos(uv.x));
-        ///    uv.y = mod(-sin(uv.x), -cos(uv.y));;
+        ///    uv.y = mod(-sin(uv.x), -cos(uv.y));
         ///    float mask1 = smoothstep(-0.50, -0.495, uv.x - uv.y * 0.2);
         ///    mask1 *= smoothstep(0.50, 0.495, uv.x + uv.y * 0.2);
         ///    mask1 -= smoothstep(0.40, 0.395, length(uv - vec2(0, 0.8)));
         ///    mask1 -= smoothstep(0.49, 0.495, uv.y);
-        ///    mask1 -= smoothstep(-0.49, -0.495, uv [rest of string was truncated]&quot;;.
+        ///    mask1 -= smoothstep(-0.49 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string BackgroundFrag {
             get {
