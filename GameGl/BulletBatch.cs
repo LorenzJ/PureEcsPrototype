@@ -6,28 +6,24 @@ using GameGl.Core.Shaders;
 using GameGl.Core.Uniforms;
 using GameGl.Properties;
 using OpenGL;
-using System;
 using System.Runtime.InteropServices;
-using System.Text;
 using TinyEcs;
 
 namespace GameGl
 {
-    public class BulletBatch
+    internal class BulletBatch
     {
         const int positionIndex = 0;
         const int offsetIndex = 1;
 
         VertexArray vao;
-        ArrayBuffer vbo;
         ArrayBuffer ivbo;
         ShaderProgram program;
         FloatUniform timeUniform;
 
-        private BulletBatch(VertexArray vao, ArrayBuffer vbo, ArrayBuffer ivbo, ShaderProgram program, FloatUniform timeUniform)
+        private BulletBatch(VertexArray vao, ArrayBuffer ivbo, ShaderProgram program, FloatUniform timeUniform)
         {
             this.vao = vao;
-            this.vbo = vbo;
             this.ivbo = ivbo;
             this.program = program;
             this.timeUniform = timeUniform;
@@ -51,7 +47,7 @@ namespace GameGl
             var vbo = Quad.GetVertexBuffer();
             var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4096, BufferUsage.DynamicDraw);
             var vao = CreateVertexArray();
-            return new BulletBatch(vao, vbo, ivbo, program, timeUniform);
+            return new BulletBatch(vao, ivbo, program, timeUniform);
 
             ShaderProgram CreateProgram()
             {
