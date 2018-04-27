@@ -10,23 +10,29 @@ namespace GameGl.Core.Buffers
 
     internal static class BufferUtil
     {
-        public static uint CreateEmpty(int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
+        private static uint CreateAndBind(BufferTarget bufferTarget)
         {
             var handle = Gl.CreateBuffer();
+            Gl.BindBuffer(bufferTarget, handle);
+            return handle;
+        }
+        public static uint CreateEmpty(int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
+        {
+            var handle = CreateAndBind(bufferTarget);
             Gl.BufferData(bufferTarget, (uint)size, null, bufferUsage);
             return handle;
         }
 
         public static uint Create(object obj, int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
         {
-            var handle = Gl.CreateBuffer();
+            var handle = CreateAndBind(bufferTarget);
             Gl.BufferData(bufferTarget, (uint)size, obj, bufferUsage);
             return handle;
         }
 
         public static uint Create(IntPtr ptr, int size, BufferTarget bufferTarget, BufferUsage bufferUsage)
         {
-            var handle = Gl.CreateBuffer();
+            var handle = CreateAndBind(bufferTarget);
             Gl.BufferData(bufferTarget, (uint)size, ptr, bufferUsage);
             return handle;
         }

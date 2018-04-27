@@ -1,5 +1,6 @@
 ﻿using Game.Components.Transform;
 using GameGl.Core;
+using GameGl.Core.Attributes;
 using GameGl.Core.Buffers;
 using GameGl.Core.Shaders;
 using GameGl.Core.Uniforms;
@@ -75,32 +76,15 @@ namespace GameGl
                 return ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length);
             }
 
-            uint CreateInstanceBuffer()
-            {
-                var ivbo = Gl.CreateBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, ivbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)Marshal.SizeOf<Position>() * 4096u, null, BufferUsage.DynamicDraw);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                return ivbo;
-            }
-
-            uint CreateVertexArray(ArrayBuffer vbo, ArrayBuffer ivbo)
+            VertexArray CreateVertexArray(ArrayBuffer vbo, ArrayBuffer ivbo)
             {
                 var builder = new VertexArrayBuilder();
                 builder.ChangeArrayBuffer(vbo);
-                builder.SetAttribute()
-                Gl.BindVertexArray(vao);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-                Gl.VertexAttribPointer(positionIndex, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
-                Gl.EnableVertexAttribArray(positionIndex);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, ivbo);
-                Gl.VertexAttribPointer(offsetIndex, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
-                Gl.EnableVertexAttribArray(offsetIndex);
-                Gl.VertexAttribDivisor(offsetIndex, 1);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                Gl.BindVertexArray(0);
-                
-                return vao;
+                builder.SetAttribute(new Vec2Attribute(positionIndex), 0, 0);
+                builder.ChangeArrayBuffer(ivbo);
+                builder.SetAttribute(new Vec2Attribute(offsetIndex), 0, 0);
+                builder.SetAttributeDivisor(offsetIndex, 1);
+                return builder.Build();
             }
         }
     }

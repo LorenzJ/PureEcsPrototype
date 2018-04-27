@@ -51,5 +51,12 @@ namespace GameGl.Core
             vertexArray.Unbind();
             return vertexArray;
         }
+
+        public void SetAttributeDivisor(IAttribute attribute, uint divisor)
+            => Gl.VertexAttribDivisor(attribute.Index, divisor);
+
+        public void SetAttributeDivisor(uint index, uint divisor)
+            => Gl.VertexAttribDivisor(index, divisor);
+        
     }
 }

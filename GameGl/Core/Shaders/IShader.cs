@@ -1,5 +1,6 @@
 ﻿using OpenGL;
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace GameGl.Core.Shaders
@@ -13,7 +14,7 @@ namespace GameGl.Core.Shaders
     {
         public static uint CompileShader(ShaderType shaderType, params string[] source)
         {
-            var shader = Gl.CreateShader(ShaderType.VertexShader);
+            var shader = Gl.CreateShader(shaderType);
             Gl.ShaderSource(shader, source);
             Gl.CompileShader(shader);
             Gl.GetShader(shader, ShaderParameterName.CompileStatus, out var compileStatus);
@@ -24,6 +25,15 @@ namespace GameGl.Core.Shaders
                 Gl.GetShaderInfoLog(shader, length, out var _, infoLog);
                 throw new ShaderCompilationException(infoLog.ToString());
             }
+#if DEBUG
+            Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out var infoLogLength);
+            if (infoLogLength > 0)
+            {
+                var infoLog = new StringBuilder(infoLogLength);
+                Gl.GetShaderInfoLog(shader, infoLogLength, out var _, infoLog);
+                Debug.Print(infoLog.ToString());
+            }
+#endif
             return shader;
         }
     }
