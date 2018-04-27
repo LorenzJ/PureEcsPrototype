@@ -20,8 +20,6 @@ namespace WindowsGame
         public GameForm()
         {
             InitializeComponent();
-            debugInfoForm = new DebugInfoForm();
-            debugInfoForm.Show();
         }
 
         private void GlControl1_ContextCreated(object sender, GlControlEventArgs e)
@@ -39,6 +37,8 @@ namespace WindowsGame
         {
             previousTime = DateTime.Now;
             timer.Start();
+            debugInfoForm = new DebugInfoForm();
+            debugInfoForm.Show();
         }
 
         private void Timer_Tick(object sender, EventArgs e)

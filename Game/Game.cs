@@ -28,7 +28,7 @@ namespace Game
 
             var rng = new Random();
             float nextFloat() => (float)(rng.NextDouble() - 0.5) * 2.0f;
-            for (int i = 0; i < 2000; i++)
+            for (int i = 0; i < 4000; i++)
             {
                 var bullet = world.CreateEntity(playerBulletType);
                 world.Get<Position>(bullet).vector = new OpenGL.Vertex2f(nextFloat(), nextFloat());
