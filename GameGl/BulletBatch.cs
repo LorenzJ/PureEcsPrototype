@@ -46,17 +46,12 @@ namespace GameGl
 
         public static BulletBatch CreateBulletBatch()
         {
-            return NewBulletBatch();
-
-            BulletBatch NewBulletBatch()
-            {
-                var program = CreateProgram();
-                var timeUniform = program.GetFloatUniform("uTime");
-                var vbo = CreateVertexBuffer();
-                var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4096, BufferUsage.DynamicDraw);
-                var vao = CreateVertexArray(vbo, ivbo);
-                return new BulletBatch(vao, vbo, ivbo, program, timeUniform);
-            }
+            var program = CreateProgram();
+            var timeUniform = program.GetFloatUniform("uTime");
+            var vbo = Quad.GetVertexBuffer();
+            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4096, BufferUsage.DynamicDraw);
+            var vao = CreateVertexArray();
+            return new BulletBatch(vao, vbo, ivbo, program, timeUniform);
 
             ShaderProgram CreateProgram()
             {
@@ -67,16 +62,7 @@ namespace GameGl
                 }
             }
 
-            ArrayBuffer CreateVertexBuffer()
-            {
-                var vertices = new float[]
-                {
-                    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f
-                };
-                return ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length);
-            }
-
-            VertexArray CreateVertexArray(ArrayBuffer vbo, ArrayBuffer ivbo)
+            VertexArray CreateVertexArray()
             {
                 var builder = new VertexArrayBuilder();
                 builder.ChangeArrayBuffer(vbo);

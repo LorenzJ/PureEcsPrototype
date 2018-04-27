@@ -1,16 +1,14 @@
-﻿using OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using GameGl.Core.Buffers;
+using OpenGL;
 
 namespace GameGl
 {
     public class Quad
     {
-        private uint vbo;
+        private ArrayBuffer vbo;
         private static Quad instance;
 
-        private Quad(uint vbo)
+        private Quad(ArrayBuffer vbo)
         {
             this.vbo = vbo;
         }
@@ -22,14 +20,11 @@ namespace GameGl
                 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f
             };
 
-            var vbo = Gl.CreateBuffer();
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(sizeof(float) * vertices.Length), vertices, BufferUsage.StaticDraw);
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            var vbo = ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length);
             instance = new Quad(vbo);
         }
 
-        public static uint GetVertexBuffer()
+        public static ArrayBuffer GetVertexBuffer()
         {
             return instance.vbo;
         }
