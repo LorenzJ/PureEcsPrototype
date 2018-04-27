@@ -1,5 +1,6 @@
 ﻿using Game;
 using System;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace WindowsGame
@@ -8,6 +9,8 @@ namespace WindowsGame
     {
         private delegate void SetDebugInfo(DebugInfo debugInfo);
         private SetDebugInfo UpdateValuesDelegate;
+        private float[] deltaTimes = new float[16];
+        private int index;
 
         public DebugInfoForm()
         {
@@ -26,7 +29,10 @@ namespace WindowsGame
             {
                 Invoke(UpdateValuesDelegate, debugInfo);
             }
-            framerateLabel.Text = $"{1.0 / debugInfo.DeltaTime:0.##} fps";
+            deltaTimes[index++] = debugInfo.DeltaTime;
+            index &= 0xF;
+            var averageDeltaTime = deltaTimes.Aggregate((f1, f2) => f1 + f2) / 16;
+            framerateLabel.Text = $"{1.0 / debugInfo.DeltaTime:0.##} fps (average: {1.0 / averageDeltaTime:0.##} fps)";
             bulletCountLabel.Text = debugInfo.BulletCount.ToString();
             playerCountLabel.Text = debugInfo.PlayerCount.ToString();
             enemyCountLabel.Text = debugInfo.EnemyCount.ToString();
