@@ -8,6 +8,7 @@ namespace GameGl
     public class Renderer : Resource
     {
         private BulletBatch bulletBatch = BulletBatch.CreateBulletBatch();
+        private Background background = Background.CreateBackground();
         private int playerBulletCount;
         private Position[] playerBulletPositions;
 
@@ -19,6 +20,7 @@ namespace GameGl
 
         public void Render(float time)
         {
+            background.Draw(time);
             bulletBatch.Draw(playerBulletPositions, playerBulletCount, time);
         }
 

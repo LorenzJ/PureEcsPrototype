@@ -1,5 +1,4 @@
 ﻿using Game;
-using System;
 using TinyEcs;
 
 namespace GameGl

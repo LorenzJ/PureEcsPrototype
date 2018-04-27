@@ -14,15 +14,13 @@ namespace GameGl
         const int offsetIndex = 1;
 
         uint vao;
-        uint vbo;
         uint ivbo;
         uint program;
         int timeUniform;
 
-        private BulletBatch(uint vao, uint vbo, uint ivbo, uint program, int timeUniform)
+        private BulletBatch(uint vao, uint ivbo, uint program, int timeUniform)
         {
             this.vao = vao;
-            this.vbo = vbo;
             this.ivbo = ivbo;
             this.program = program;
             this.timeUniform = timeUniform;
@@ -47,10 +45,10 @@ namespace GameGl
             {
                 var program = CreateProgram();
                 var timeUniform = GetTimeUniform(program);
-                var vbo = CreateVertexBuffer();
+                var vbo = Quad.GetVertexBuffer();
                 var ivbo = CreateInstanceBuffer();
                 var vao = CreateVertexArray(vbo, ivbo);
-                return new BulletBatch(vao, vbo, ivbo, program, timeUniform);
+                return new BulletBatch(vao, ivbo, program, timeUniform);
             }
 
             int GetTimeUniform(uint program)
@@ -100,20 +98,6 @@ namespace GameGl
                 Gl.DeleteShader(vertexShader);
                 Gl.DeleteShader(fragShader);
                 return program;
-            }
-
-            uint CreateVertexBuffer()
-            {
-                var vertices = new float[]
-                {
-                    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f
-                };
-
-                var vbo = Gl.CreateBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(sizeof(float) * vertices.Length), vertices, BufferUsage.StaticDraw);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                return vbo;
             }
 
             uint CreateInstanceBuffer()

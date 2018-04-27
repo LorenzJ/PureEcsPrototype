@@ -71,6 +71,33 @@ namespace GameGl.Properties {
         ///
         ///void main()
         ///{
+        ///    vec2 uv = Position;
+        ///    uv.y += uTime * 0.2;
+        ///    uv.x = mod(sin(uv.y), cos(uv.x));
+        ///    uv.y = mod(-sin(uv.x), -cos(uv.y));;
+        ///    float mask1 = smoothstep(-0.50, -0.495, uv.x - uv.y * 0.2);
+        ///    mask1 *= smoothstep(0.50, 0.495, uv.x + uv.y * 0.2);
+        ///    mask1 -= smoothstep(0.40, 0.395, length(uv - vec2(0, 0.8)));
+        ///    mask1 -= smoothstep(0.49, 0.495, uv.y);
+        ///    mask1 -= smoothstep(-0.49, -0.495, uv [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string BackgroundFrag {
+            get {
+                return ResourceManager.GetString("BackgroundFrag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
+        ///uniform float uTime;
+        ///
+        ///in vec2 Position;
+        ///
+        ///out vec4 FragColor;
+        ///
+        ///void main()
+        ///{
         ///	float t = uTime * 2.0;
         ///    vec2 uv = Position;
         ///
@@ -110,6 +137,21 @@ namespace GameGl.Properties {
         internal static string BulletVertex {
             get {
                 return ResourceManager.GetString("BulletVertex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
+        ///layout (location = 0) in vec2 aPosition;
+        ///
+        ///void main() {
+        ///	gl_Position = vec4(aPosition, 0., 1.);
+        ///}.
+        /// </summary>
+        internal static string SimpleVertex {
+            get {
+                return ResourceManager.GetString("SimpleVertex", resourceCulture);
             }
         }
     }

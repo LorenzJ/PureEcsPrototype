@@ -17,20 +17,19 @@ namespace Game.Systems
 
         protected override void Execute(World world, DetectCollisionsMessage message)
         {
-            var playerBulletToEnemies = Task.Run(() => 
+            var playerBulletsToEnemies = Task.Run(() => 
                 GetCollisionPairs(
                     playerBullets.positions, playerBullets.colliders, playerBullets.entities, playerBullets.length,
-                    enemies.positions, enemies.colliders, enemies.entities, enemies.length));
+                    enemies.positions, enemies.colliders, enemies.entities, enemies.length))
+                .ContinueWith(HandleCollisions);
 
-            var enemyBulletsToPlayer = Task.Run(() => 
+            var enemyBulletsToPlayers = Task.Run(() =>
                 GetCollisionPairs(
                     enemyBullets.positions, enemyBullets.colliders, enemyBullets.entities, enemyBullets.length,
-                    players.positions, players.colliders, players.entities, players.length));
-
-            var handlePlayerBulletsToEnemies = playerBulletToEnemies.ContinueWith(HandleCollisions);
-            var handleEnemyBulletsToPlayers = enemyBulletsToPlayer.ContinueWith(HandleCollisions);
+                    players.positions, players.colliders, players.entities, players.length))
+                .ContinueWith(HandleCollisions);
             
-            Task.WaitAll(handlePlayerBulletsToEnemies, handleEnemyBulletsToPlayers);
+            Task.WaitAll(playerBulletsToEnemies, enemyBulletsToPlayers);
         }
 
         private void HandleCollisions(Task<List<(Entity, Entity)>> pairs)
