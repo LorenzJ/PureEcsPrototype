@@ -51,7 +51,7 @@ namespace TinyEcs
             var array = arrayObject as Array;
             var type = array.GetType().GetElementType();
             var newArray = Array.CreateInstance(type, size);
-            Array.Copy(array as Array, newArray, Math.Min(array.Length, newArray.Length));
+            Array.Copy(array, newArray, Math.Min(array.Length, newArray.Length));
             return newArray;
         }
 
