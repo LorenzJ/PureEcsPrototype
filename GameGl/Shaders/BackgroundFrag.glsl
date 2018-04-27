@@ -9,7 +9,8 @@ out vec4 FragColor;
 void main()
 {
     vec2 uv = Position;
-	uv *= 2.0;
+	uv *= .5;
+	uv.x *= 2.8;
     uv.y += uTime * 0.2;
     uv.x = mod(sin(uv.y), cos(uv.x));
     uv.y = mod(-sin(uv.x), -cos(uv.y));

@@ -16,7 +16,7 @@ namespace GameGl
         internal static Background CreateBackground()
         {
             Background background = new Background();
-            using (var vertexShader = VertexShader.FromSource(Resources.SimpleVertex))
+            using (var vertexShader = VertexShader.FromSource(Resources.BackgroundVertex))
             using (var fragmentShader = FragmentShader.FromSource(Resources.BackgroundFrag))
             {
                 background.program = ShaderProgram.LinkShaders(vertexShader, fragmentShader);
