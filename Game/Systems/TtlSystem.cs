@@ -11,11 +11,17 @@ namespace Game.Systems
         public class Data
         {
             public int length;
-            public RoArray<Entity> entities;
-            public RwArray<Ttl> ttls;
+            public RoDataStream<Entity> entities;
+            public RwDataStream<Ttl> ttls;
         }
         [Group] public Data data;
-        [Resource] public DeadEntityList deadEntities;
+
+        private DeadEntityList deadEntities;
+
+        public TtlSystem(DeadEntityList deadEntities)
+        {
+            this.deadEntities = deadEntities;
+        }
 
         private ConcurrentBag<List<Entity>> entitiesBag = new ConcurrentBag<List<Entity>>();
 

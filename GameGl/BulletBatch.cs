@@ -29,22 +29,23 @@ namespace GameGl
             this.timeUniform = timeUniform;
         }
 
-        public void Draw(RoArray<Position> positions, int length, float time)
+        public void Draw(Position[] positions, int length, float time)
         {
             program.Use();
             timeUniform.Set(time);
             ivbo.Bind();
             ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * length, (Position[])positions);
+            ivbo.Unbind();
             vao.Bind();
             Gl.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, length);
             vao.Unbind();
         }
 
-        public static BulletBatch CreateBulletBatch()
+        public static BulletBatch Create()
         {
             var program = CreateProgram();
             var timeUniform = program.GetFloatUniform("uTime");
-            var vbo = Quad.GetVertexBuffer();
+            var vbo = Quad.VertexBuffer;
             var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4096, BufferUsage.DynamicDraw);
             var vao = CreateVertexArray();
             return new BulletBatch(vao, ivbo, program, timeUniform);

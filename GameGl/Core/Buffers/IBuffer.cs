@@ -20,6 +20,7 @@ namespace GameGl.Core.Buffers
         {
             var handle = CreateAndBind(bufferTarget);
             Gl.BufferData(bufferTarget, (uint)size, null, bufferUsage);
+            Gl.BindBuffer(bufferTarget, 0);
             return handle;
         }
 
@@ -27,6 +28,7 @@ namespace GameGl.Core.Buffers
         {
             var handle = CreateAndBind(bufferTarget);
             Gl.BufferData(bufferTarget, (uint)size, obj, bufferUsage);
+            Gl.BindBuffer(bufferTarget, 0);
             return handle;
         }
 
@@ -34,6 +36,7 @@ namespace GameGl.Core.Buffers
         {
             var handle = CreateAndBind(bufferTarget);
             Gl.BufferData(bufferTarget, (uint)size, ptr, bufferUsage);
+            Gl.BindBuffer(bufferTarget, 0);
             return handle;
         }
     }

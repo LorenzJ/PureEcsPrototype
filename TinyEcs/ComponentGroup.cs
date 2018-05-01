@@ -6,164 +6,115 @@ namespace TinyEcs
 {
     public class ComponentGroup
     {
-        private int length;
-        private Entity[] entities;
-        private Dictionary<Type, object> readMap = new Dictionary<Type, object>();
-        private Dictionary<Type, object> writeMap = new Dictionary<Type, object>();
-        private HashSet<Type> componentTypes = new HashSet<Type>();
-        private object[] arguments = new object[] { null };
+        internal ArchetypeGroup[] archetypeGroups;
+        private Dictionary<Type, Array2> componentsMap;
+        private Array2<Entity> entities;
+        private Type[] componentTypes;
+        private Type[] tagTypes;
+        private int count;
+        internal Type[] types;
 
-        public int Length => length;
-        public RoArray<Entity> Entities => new RoArray<Entity>(entities);
+        public int Count => count;
 
-        internal ComponentGroup(Type[] readTypes, Type[] writeTypes, int size)
+        internal ComponentGroup(ArchetypeGroup[] archetypeGroups, Type[] types)
         {
-            foreach (var type in readTypes)
+            this.types = types;
+            entities = new Array2<Entity>(64);
+            this.archetypeGroups = archetypeGroups;
+            componentTypes = types.Where(t => t.GetInterfaces().Contains(typeof(IComponent))).ToArray();
+            tagTypes = types.Where(t => t.GetInterfaces().Contains(typeof(ITag))).ToArray();
+            componentsMap = new Dictionary<Type, Array2>();
+            foreach (var componentType in componentTypes)
             {
-                componentTypes.Add(type);
-                var array = Array.CreateInstance(type, size);
-                readMap.Add(type, array);
-            }
-            foreach (var type in writeTypes)
-            {
-                componentTypes.Add(type);
-                var array = Array.CreateInstance(type, size);
-                writeMap.Add(type, array);
-            }
-            entities = new Entity[size];
-        }
-
-        internal void Resize(int size)
-        {
-            Array.Resize(ref entities, size);
-            foreach (var key in readMap.Keys.ToArray())
-            {
-                readMap[key] = Resize(readMap[key], size);
-            }
-            foreach (var key in writeMap.Keys.ToArray())
-            {
-                writeMap[key] = Resize(writeMap[key], size);
+                componentsMap.Add(componentType, new Array2(componentType, 64));
             }
         }
 
-        private object Resize(object arrayObject, int size)
+        public void UpdateStream()
         {
-            var array = arrayObject as Array;
-            var type = array.GetType().GetElementType();
-            var newArray = Array.CreateInstance(type, size);
-            Array.Copy(array, newArray, Math.Min(array.Length, newArray.Length));
-            return newArray;
-        }
-
-        internal void Inject(Dictionary<Type, IComponentContainer> componentContainers)
-        {
-            foreach (var entry in readMap)
-            {
-                var container = componentContainers[entry.Key];
-                container.Pack(entities, readMap[entry.Key], length);
-            }
-            foreach (var entry in writeMap)
-            {
-                var container = componentContainers[entry.Key];
-                container.Pack(entities, writeMap[entry.Key], length);
-            }
-        }
-
-        internal void Unpack(Dictionary<Type, IComponentContainer> componentContainers)
-        {
-            foreach (var entry in writeMap)
-            {
-                var container = componentContainers[entry.Key];
-                container.Unpack(entities, writeMap[entry.Key], length);
-            }
-        }
-
-        internal void Add(Entity entity)
-        {
-            if (entities.Length == length)
-            {
-                Resize(length * 2);
-            }
-            entities[length++] = entity;
-            BubbleDown(entities, length);
-        }
-
-        internal void AddIfDoesNotExist(Entity entity)
-        {
-            var index = Array.BinarySearch(entities, 0, length, entity);
-            if (index < 0)
-            {
-                Add(entity);
-            }
-        }
-
-        internal void RemoveIfExists(Entity entity)
-        {
-            var index = Array.BinarySearch(entities, 0, length, entity);
-            if (index < 0)
+            // Early exit if there are no archetype groups
+            if (archetypeGroups.Length == 0)
             {
                 return;
             }
-            else
+            // Get the required amount of elements
+            count = archetypeGroups.Select(a => a.Count).Aggregate((a, b) => a + b);
+
+            // Create the arrays
+            entities.Resize(count);
+            foreach (var type in componentTypes)
             {
-                length--;
-                if (index >= 0 && index != length)
+                var arr = componentsMap[type];
+                arr.Resize(count);
+                componentsMap[type] = arr;
+            }
+
+            var index = 0;
+            foreach (var archetypeGroup in archetypeGroups)
+            {
+                foreach (var type in componentTypes)
                 {
-                    Array.Copy(entities, index + 1, entities, index, length - index);
+                    // Copy the archetype group's component to the streams
+                    Array.Copy(archetypeGroup.GetComponents(type), 0, componentsMap[type].Data, index, archetypeGroup.Count);
                 }
+                Array.Copy(archetypeGroup.GetEntities(), 0, entities.Data, index, archetypeGroup.Count);
+                // Advance the streams
+                index += archetypeGroup.Count;
             }
         }
 
+        /// <summary>
+        /// Gets an array of components meant for read operations only.
+        /// </summary>
+        /// <typeparam name="T">The type of components to read</typeparam>
+        /// <returns>Read-only array of T</returns>
+        public RoDataStream<T> GetRead<T>()
+            where T : struct, IComponent => Array2.AsRoStream<T>(componentsMap[typeof(T)]);
 
-
-        public RoArray<T> GetRead<T>()
-            where T : struct, IComponent
-            => new RoArray<T>(readMap[typeof(T)] as T[]);
-
-        private void BubbleDown(Entity[] entities, int length)
+        internal Array GetRead(Type type) => componentsMap[type].Data;
+        internal Array GetWrite(Type type)
         {
-            for (var i = length - 1; i > 0; i--)
+            Lock(type);
+            return componentsMap[type].Data;
+        }
+
+        private void Lock(Type type)
+        {
+            foreach (var archetypeGroup in archetypeGroups)
             {
-                if (entities[i - 1] < entities[i])
+                archetypeGroup.LockForWriting(type);
+            }
+        }
+
+        /// <summary>
+        /// Gets an array of components meant for read/write operations.
+        /// </summary>
+        /// <typeparam name="T">The type of components</typeparam>
+        /// <returns>Mutable array of T</returns>
+        public RwDataStream<T> GetWrite<T>()
+            where T : struct, IComponent
+        {
+            Lock(typeof(T));
+            return Array2.AsRwStream<T>(componentsMap[typeof(T)]);//new RwDataStream<T>(componentsMap[typeof(T)] as T[]);
+        }
+
+        public void WriteAndUnlock(params Type[] types)
+        {
+            var index = 0;
+            foreach (var archetypeGroup in archetypeGroups)
+            {
+                foreach (var type in types)
                 {
-                    break;
+                    // Copy the stream back to the archetype group
+                    Array.Copy(componentsMap[type].Data, index, archetypeGroup.GetComponents(type), 0, archetypeGroup.Count);
+                    // Unlock the component for the archetype
+                    archetypeGroup.Unlock(type);
                 }
-                var largerEntity = entities[i - 1];
-                entities[i - 1] = entities[i];
-                entities[i] = largerEntity;
+                // Advance the streams
+                index += archetypeGroup.Count;
             }
         }
 
-        public RwArray<T> GetWrite<T>()
-            where T : struct, IComponent
-            => new RwArray<T>(writeMap[typeof(T)] as T[]);
-
-        internal object GetDirectRead(Type type) => readMap[type];
-        internal object GetDirectWrite(Type type) => writeMap[type];
-
-        public bool Contains(Type componentType) => componentTypes.Contains(componentType);
-
-        internal bool IsEquivalentTo(Type[] readTypes, Type[] writeTypes)
-        {
-            var innerReadTypes = readMap.Keys;
-            var innerWriteTypes = writeMap.Keys;
-
-            if (readTypes.Length != innerReadTypes.Count || writeTypes.Length != innerWriteTypes.Count)
-            {
-                return false;
-            }
-            else if (readTypes.Union(innerReadTypes).Count() != readTypes.Length)
-            {
-                return false;
-            }
-            else if (writeTypes.Union(innerWriteTypes).Count() != writeTypes.Length)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
+        public RoDataStream<Entity> GetEntities() => Array2.AsRoStream(entities);
     }
 }

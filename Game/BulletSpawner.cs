@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Game
 {
-    class BulletSpawner : Resource
+    class BulletSpawner
     {
         Archetype[] bulletTypes = new Archetype[2];
         List<BulletCommand> bulletCommands = new List<BulletCommand>();
@@ -30,12 +30,12 @@ namespace Game
             }
         }
 
-        protected override void OnLoad(World world)
+        protected void OnLoad(World world)
         {
             this.world = world;
             var bullet = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(Components.Colliders.Circle), typeof(BulletTag));
-            bulletTypes[(int)BulletType.Player] = world.DeriveArchetype(bullet, typeof(PlayerTag));
-            bulletTypes[(int)BulletType.Enemy] = world.DeriveArchetype(bullet, typeof(EnemyTag));
+            bulletTypes[(int)BulletType.Player] = world.CreateArchetype(bullet, typeof(PlayerTag));
+            bulletTypes[(int)BulletType.Enemy] = world.CreateArchetype(bullet, typeof(EnemyTag));
         }
 
         public void Spawn(IEnumerable<BulletCommand> commands)
@@ -54,13 +54,13 @@ namespace Game
             }
         }
 
-        protected override void Flush(IMessage message)
+        protected void Flush(IMessage message)
         {
             foreach (var bulletCommand in bulletCommands)
             {
                 var newBullet = world.CreateEntity(bulletTypes[(int)bulletCommand.bulletType]);
-                world.Get<Position>(newBullet) = bulletCommand.position;
-                world.Get<Heading>(newBullet) = bulletCommand.heading;
+                world.Ref<Position>(newBullet) = bulletCommand.position;
+                world.Ref<Heading>(newBullet) = bulletCommand.heading;
             }
             bulletCommands.Clear();
         }

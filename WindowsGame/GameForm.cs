@@ -26,8 +26,8 @@ namespace WindowsGame
         {
             Focus();
             game = new Game.Game();
-            renderer = game.World.GetResource<Renderer>();
-            debugInfo = game.World.GetResource<DebugInfo>();
+            renderer = game.World.GetDependency<Renderer>();
+            debugInfo = game.World.GetDependency<DebugInfo>(); 
 
             Gl.Enable(EnableCap.Blend);
             Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);

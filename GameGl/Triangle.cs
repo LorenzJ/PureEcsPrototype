@@ -1,21 +1,21 @@
 ﻿using GameGl.Core.Buffers;
-using OpenGL;
 
 namespace GameGl
 {
-    public class Quad
+    public class Triangle
     {
         private ArrayBuffer vbo;
-        private static Quad instance;
+        private static Triangle instance;
 
-        static Quad()
+        static Triangle()
         {
-            var vertices = new float[]
+            float[] vertices =
             {
-                0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f
+                .0f, .5f,
+                -.5f, -.5f,
+                .5f, -.5f
             };
-
-            instance = new Quad
+            instance = new Triangle
             {
                 vbo = ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length)
             };

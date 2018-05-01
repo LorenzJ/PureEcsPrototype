@@ -3,15 +3,9 @@ using TinyEcs;
 
 namespace Game
 {
-    public class DeadEntityList : Resource
+    public class DeadEntityList
     {
         private List<Entity> entities = new List<Entity>();
-        private World world;
-
-        protected override void OnLoad(World world)
-        {
-            this.world = world;
-        }
 
         public void Add(Entity entity)
         {
@@ -29,7 +23,7 @@ namespace Game
             }
         }
 
-        protected override void Flush(IMessage message)
+        public void Commit(World world)
         {
             foreach (var entity in entities)
             {

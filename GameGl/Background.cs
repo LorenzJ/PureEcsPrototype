@@ -13,7 +13,7 @@ namespace GameGl
         private FloatUniform timeUniform;
         private VertexArray vao;
 
-        internal static Background CreateBackground()
+        internal static Background Create()
         {
             Background background = new Background();
             using (var vertexShader = VertexShader.FromSource(Resources.BackgroundVertex))
@@ -24,7 +24,7 @@ namespace GameGl
             background.timeUniform = background.program.GetFloatUniform("uTime");
 
             var builder = new VertexArrayBuilder();
-            builder.ChangeArrayBuffer(Quad.GetVertexBuffer());
+            builder.ChangeArrayBuffer(Quad.VertexBuffer);
             builder.SetAttribute(new Vec2Attribute(0), 0, 0);
             background.vao = builder.Build();
 

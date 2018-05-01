@@ -3,7 +3,7 @@ using TinyEcs;
 
 namespace Game
 {
-    public class DebugInfo : Resource
+    public class DebugInfo
     {
         public float DeltaTime { get; set; }
         public int BulletCount { get; set; }
@@ -17,29 +17,34 @@ namespace Game
         public class Bullets
         {
             public int length;
-            public RoArray<BulletTag> bulletTag;
+            public BulletTag bulletTag;
         }
         public class Ships
         {
             public int length;
-            public RoArray<ShipTag> shipTag;
+            public ShipTag shipTag;
         }
         public class PlayerObjects
         {
             public int length;
-            public RoArray<PlayerTag> playerTag;
+            public PlayerTag playerTag;
         }
         public class EnemyObjects
         {
             public int length;
-            public RoArray<EnemyTag> enemyTag;
+            public EnemyTag enemyTag;
         }
         [Group] public Bullets bullets;
         [Group] public Ships ships;
         [Group] public PlayerObjects players;
         [Group] public EnemyObjects enemies;
 
-        [Resource] public DebugInfo debugInfo;
+        private DebugInfo debugInfo;
+
+        public DebugInfoSystem(DebugInfo debugInfo)
+        {
+            this.debugInfo = debugInfo;
+        }
 
         protected override void Execute(World world, UpdateMessage message)
         {

@@ -1,364 +1,322 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Threading;
 
 namespace TinyEcs
 {
-    /// <summary>
-    /// The world class.
-    /// Can not be inherited from.
-    /// Use World.Create() to create an instance.
-    /// </summary>
-    public sealed partial class World
+    public class World
     {
-        private const int initialSize = 2048;
-        private int size = initialSize;
-        private int highestEntityHandle = 0;
-        private Queue<int> openEntityHandles = new Queue<int>();
-        private List<Type>[] linkedComponentTypes = new List<Type>[initialSize];
-
-        private Dictionary<Type, Resource> resourceMap = new Dictionary<Type, Resource>();
-
-        private Dictionary<Type, IComponentContainer> componentContainerMap = new Dictionary<Type, IComponentContainer>();
-
-        private List<ComponentGroup> componentGroups = new List<ComponentGroup>();
-        private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
-        private Dictionary<Archetype, ComponentGroup[]> archeTypeAffectingGroups = new Dictionary<Archetype, ComponentGroup[]>();
-        private Lookup<Type, ISystem> systemMessageMap;
-        private int archetypeId;
-
-        private bool executingSystems = false;
-
         /// <summary>
-        /// Create a new Entity handle
+        /// Reverse type to archetype lookup
         /// </summary>
-        /// <returns>Entity handle</returns>
-        public Entity CreateEntity()
-        {
-            Debug.Assert(!executingSystems, "Can't create an entity while a system is being executed");
-            // Try to fill open spots
-            if (openEntityHandles.Count > 0)
-            {
-                return new Entity(openEntityHandles.Dequeue());
-            }
-            else
-            {
-                // Get a new handle
-                var handle = highestEntityHandle++;
-                // Resize component containers if required
-                if (handle >= size)
-                {
-                    size *= 2;
-                    Array.Resize(ref linkedComponentTypes, size);
-
-                    foreach (var entry in componentContainerMap)
-                    {
-                        entry.Value.Resize(size);
-                    }
-                }
-                // Return an entity with the new handle
-                return new Entity(handle);
-            }
-        }
-
-        public Entity CreateEntity(Archetype archeType)
-        {
-            Entity entity = CreateEntity();
-            foreach (var group in archeTypeAffectingGroups[archeType])
-            {
-                group.Add(entity);
-            }
-            var componentTypes = GetLinkedComponentTypes(entity);
-            componentTypes.AddRange(archeType.types);
-            return entity;
-        }
-
-        private List<Type> GetLinkedComponentTypes(Entity entity)
-        {
-            if (linkedComponentTypes[entity.handle] == null)
-            {
-                linkedComponentTypes[entity.handle] = new List<Type>();
-            }
-            return linkedComponentTypes[entity.handle];
-        }
-
-        private HashSet<ComponentGroup> GetAffectedComponentGroups(Type[] types)
-        {
-            var groupSet = new HashSet<ComponentGroup>();
-            foreach (var type in types)
-            {
-                var groupList = componentGroups.Where(g => g.Contains(type));
-                foreach (var group in groupList)
-                {
-                    groupSet.Add(group);
-                }
-            }
-
-            return groupSet;
-        }
-
-        public Archetype CreateArchetype(params Type[] types)
-        {
-            HashSet<ComponentGroup> groupSet = GetAffectedComponentGroups(types);
-
-            var archetype = new Archetype(archetypeId++, types);
-            archeTypeAffectingGroups.Add(archetype, groupSet.ToArray());
-            return archetype;
-        }
-
-        public Archetype DeriveArchetype(IEnumerable<Archetype> parents, IEnumerable<Type> types)
-        {
-            var parentGroups = parents.SelectMany(p => archeTypeAffectingGroups[p]);
-            var childGroups = GetAffectedComponentGroups(types.ToArray());
-            var combinedTypes = parents.SelectMany(p => p.types).Union(types);
-            var combinedGroups = parentGroups.Union(childGroups);
-            var archetype = new Archetype(archetypeId++, combinedTypes.ToArray());
-            archeTypeAffectingGroups.Add(archetype, combinedGroups.ToArray());
-            return archetype;
-        }
-        public Archetype DeriveArchetype(Archetype parent, params Type[] types)
-        {
-            var parentGroups = archeTypeAffectingGroups[parent];
-            var childGroups = GetAffectedComponentGroups(types);
-            var combinedTypes = parent.types.Union(types);
-            var combinedGroups = parentGroups.Union(childGroups);
-            var archetype = new Archetype(archetypeId++, combinedTypes.ToArray());
-            archeTypeAffectingGroups.Add(archetype, combinedGroups.ToArray());
-            return archetype;
-        }
-
-        public void DestroyEntity(Entity entity)
-        {
-            Debug.Assert(!executingSystems, "Can't destroy an entity while a system is executing");
-            openEntityHandles.Enqueue(entity.handle);
-
-            foreach (var group in componentGroups)
-            {
-                group.RemoveIfExists(entity);
-            }
-            linkedComponentTypes[entity.handle].Clear();
-        }
-
-        public T GetResource<T>() where T : Resource => resourceMap[typeof(T)] as T;
-
+        private Dictionary<Type[], Archetype> typeMap;
         /// <summary>
-        /// Link a component to an entity
+        /// Archetype type registry
         /// </summary>
-        /// <typeparam name="T">The type of component to add</typeparam>
-        /// <param name="entity">The entity handle</param>
-        /// <param name="component">A component instance of type T</param>
-        public void Add<T>(Entity entity, T component)
-            where T : struct, IComponent
+        private FlatMap<Archetype, Type[]> archetypeMap;
+        /// <summary>
+        /// archetype group array indexed by archetype
+        /// </summary>
+        private FlatMap<Archetype, ArchetypeGroup> archetypeGroupMap;
+        /// <summary>
+        /// Entity to archetype lookup
+        /// </summary>
+        private FlatMap<Entity, Archetype> entityArchetypeMap;
+        /// <summary>
+        /// Map entities to an archetype group
+        /// </summary>
+        private FlatMap<Entity, ArchetypeGroup> entityArchetypeGroupMap;
+        /// <summary>
+        /// Maps entities to an internal index in their archetype group
+        /// </summary>
+        private FlatMap<Entity, int> entityIndexMap;
+        /// <summary>
+        /// To keep track off all the component groups
+        /// </summary>
+        private List<ComponentGroup> componentGroups;
+        /// <summary>
+        /// A lookup of message type to systems
+        /// </summary>
+        private Lookup<Type, ISystem> systemMap;
+        /// <summary>
+        /// A lookup for group injectors of systems
+        /// </summary>
+        private Dictionary<ISystem, List<GroupInjector>> groupInjectorMap;
+        /// <summary>
+        /// Dictionary of dependencies
+        /// </summary>
+        private Dictionary<Type, object> dependencyMap;
+
+        private int nextArchetypeId;
+        private int nextEntityId;
+        private Queue<int> openEntityIds;
+
+        #region Creation
+        private World(IEnumerable<ISystem> systems, Dictionary<Type, object> dependencyMap)
         {
-            Debug.Assert(!executingSystems, "Can't add components to an entity while a system is being executed");
-            var affectedGroups = componentGroups.Where(g => g.Contains(component.GetType()));
-            foreach (var group in affectedGroups)
-            {
-                group.AddIfDoesNotExist(entity);
-            }
-            var componentList = GetLinkedComponentTypes(entity);
-            componentList.Add(typeof(T));
+            const int reserved = 64;
+
+            typeMap = new Dictionary<Type[], Archetype>();
+            archetypeMap = new FlatMap<Archetype, Type[]>(reserved);
+            archetypeGroupMap = new FlatMap<Archetype, ArchetypeGroup>(reserved);
+            entityArchetypeMap = new FlatMap<Entity, Archetype>(reserved);
+            entityArchetypeGroupMap = new FlatMap<Entity, ArchetypeGroup>(reserved);
+            entityIndexMap = new FlatMap<Entity, int>(reserved);
+
+            componentGroups = new List<ComponentGroup>();
+            openEntityIds = new Queue<int>();
+
+            groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
+
+            systemMap = systems
+                .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
+
+            this.dependencyMap = dependencyMap;
         }
 
-        /// <summary>
-        /// Unlink a component from an entity
-        /// </summary>
-        /// <typeparam name="T">The type of the component to unlink</typeparam>
-        /// <param name="entity">The target entity handle</param>
-        public void Remove<T>(Entity entity)
-            where T : struct, IComponent
-        {
-            Remove(entity, typeof(T));
-        }
-
-        public void Remove(Entity entity, Type type)
-        {
-            Debug.Assert(!executingSystems, "Can't remove a component while a system is being executed");
-            var affectedGroups = componentGroups.Where(g => g.Contains(type));
-            foreach (var group in affectedGroups)
-            {
-                group.RemoveIfExists(entity);
-            }
-            var componentList = GetLinkedComponentTypes(entity);
-            componentList.Remove(type);
-        }
-
-        /// <summary>
-        /// Get a reference to a component
-        /// </summary>
-        /// <typeparam name="T">The type of component</typeparam>
-        /// <param name="entity">The entity linked to the component</param>
-        /// <returns>component reference</returns>
-        public ref T Get<T>(Entity entity)
-            where T : struct, IComponent
-            => ref (componentContainerMap[typeof(T)] as ComponentContainer<T>)[entity];
-
-        /// <summary>
-        /// Send a message.
-        /// All systems responding to the type of the message will execute.
-        /// </summary>
-        /// <param name="message">The message to send</param>
-        public void Post(IMessage message)
-        {
-            executingSystems = true; // Temporary solution
-            var systems = systemMessageMap[message.GetType()];
-            var injectors = systems.SelectMany(system => groupInjectorMap[system]);
-            Parallel.ForEach(injectors, injector => injector.Inject(componentContainerMap));
-            Parallel.ForEach(systems, system => system.Execute(this, message));
-            Parallel.ForEach(injectors, injector => injector.Unpack(componentContainerMap));
-            executingSystems = false;
-
-            foreach (var entry in resourceMap)
-            {
-                entry.Value.Flush(message);
-            }
-        }
-
-        /// <summary>
-        /// Create a world instance.
-        /// Multiple worlds can be created if desired.
-        /// Will look for and register all loaded systems.
-        /// System instances are unique for each world.
-        /// </summary>
-        /// <returns>New world instance</returns>
         public static World Create()
         {
-            var world = new World();
-
+            // Get all loaded assemblies
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var types = assemblies.SelectMany(asm => asm.DefinedTypes);
-
-            world.resourceMap = new Dictionary<Type, Resource>();
-
-            var resourceTypes = types
-                .Where(type => type.BaseType != null && type.IsSubclassOf(typeof(Resource)));
-
+            // Find the ComponentSystem types
             var systemTypes = types
-                .Where(type => type.BaseType != null && type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == typeof(ComponentSystem<>));
+                .Where(type => type.BaseType != null 
+                    && type.BaseType.IsGenericType 
+                    && type.BaseType.GetGenericTypeDefinition() == typeof(ComponentSystem<>));
 
-            var componentTypes = types
-                .Where(type => type.IsValueType && type.GetInterfaces().Contains(typeof(IComponent)));
+            // Get the constructors
+            var systemConstructors = systemTypes
+                .Select(type => type.GetConstructors().Single());
 
-            var systems = new List<ISystem>();
+            // Find the dependencies
+            var systemDependencies = systemConstructors
+                .Select(ci => ci.GetParameters())
+                .Select(pis => pis.Select(pi => pi.ParameterType).ToArray());
 
-            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            CreateResources();
-            CreateComponentContainers();
-            CreateSystems();
-
-            foreach (var entry in world.resourceMap)
+            // Create the systems and inject the dependencies
+            var dependencyMap = new Dictionary<Type, object>();
+            var systems = new List<ISystem>(systemTypes.Count());
+            foreach (var entry in systemConstructors.Zip(systemDependencies, ValueTuple.Create))
             {
-                entry.Value.OnLoad(world);
-            }
-
-            world.systemMessageMap = systems
-                .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
-            return world;
-
-            void CreateResources()
-            {
-                foreach (var resourceType in resourceTypes)
+                var (constructor, dependencyTypes) = entry;
+                var arguments = new List<object>(dependencyTypes.Length);
+                foreach (var dependencyType in dependencyTypes)
                 {
-                    world.resourceMap.Add(resourceType, Activator.CreateInstance(resourceType) as Resource);
-                }
-            }
-            void CreateComponentContainers()
-            {
-                foreach (var componentType in componentTypes)
-                {
-                    var componentContainerType = typeof(ComponentContainer<>).MakeGenericType(new Type[] { componentType });
-                    var constructor = componentContainerType.GetConstructor(new Type[] { typeof(int) });
-                    
-                    world.componentContainerMap.Add(componentType, constructor.Invoke(new object[] { initialSize }) as IComponentContainer);
-                }
-            }
-
-            void CreateSystems()
-            {
-                foreach (var systemType in systemTypes)
-                {
-                    var systemInstance = systemType.GetConstructor(Type.EmptyTypes).Invoke(null);
-                    systems.Add(systemInstance as ISystem);
-
-                    // Find all fields for resource injection
-                    var resourceFields =
-                        systemType.GetFields(bindingFlags)
-                        .Where(fi => fi.GetCustomAttribute(typeof(ResourceAttribute)) != null);
-                    InjectResources(systemInstance, resourceFields);
-
-                    // Find groups for component injection
-                    var groupFields =
-                        systemType.GetFields(bindingFlags)
-                        .Where(fi => fi.GetCustomAttribute(typeof(GroupAttribute)) != null);
-
-                    var groupInjectors = new List<GroupInjector>();
-                    CreateComponentGroups();
-                    world.groupInjectorMap.Add(systemInstance as ISystem, groupInjectors);
-
-                    void CreateComponentGroups()
+                    if (!dependencyMap.TryGetValue(dependencyType, out var dependency))
                     {
-                        foreach (var groupField in groupFields)
-                        {
-                            var groupFieldType = groupField.FieldType;
-                            var groupFieldInstance = groupFieldType.GetConstructor(Type.EmptyTypes).Invoke(null);
-                            groupField.SetValue(systemInstance, groupFieldInstance);
-
-                            var fields = groupFieldType.GetFields(bindingFlags);
-                            var lengthField = groupFieldType.GetField("length");
-                            var entityField = fields.Where(fi => fi.FieldType == typeof(RoArray<Entity>)).SingleOrDefault();
-                            var genericFields = fields
-                                .Where(fi => fi.FieldType.IsGenericType);
-                            var readFields = genericFields
-                                .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RoArray<>) && fi.FieldType != typeof(RoArray<Entity>));
-                            var writeFields = genericFields
-                                .Where(fi => fi.FieldType.GetGenericTypeDefinition() == typeof(RwArray<>));
-
-                            var readTypes = readFields
-                                .Select(fi => fi.FieldType.GetGenericArguments()[0]).ToArray();
-                            var writeTypes = writeFields
-                                .Select(fi => fi.FieldType.GetGenericArguments()[0]).ToArray();
-
-                            var readTuples = readTypes.Zip(readFields, (t, f) => (t, f)).ToArray();
-                            var writeTuples = writeTypes.Zip(writeFields, (t, f) => (t, f)).ToArray();
-
-                            var componentGroup = world.GetComponentGroup(readTypes, writeTypes);
-                            var groupInjector = new GroupInjector(groupFieldInstance, writeTuples, readTuples, entityField, lengthField, componentGroup);
-                            groupInjectors.Add(groupInjector);
-                        }
+                        dependency = Activator.CreateInstance(dependencyType);
+                        dependencyMap.Add(dependencyType, dependency);
                     }
-                }  
+                    arguments.Add(dependency);
+                }
+                // Create and add the system
+                systems.Add((ISystem)constructor.Invoke(arguments.ToArray()));
             }
 
-            void InjectResources(object systemInstance, IEnumerable<FieldInfo> resourceFields)
+            // Create the world
+            var world = new World(systems, dependencyMap);
+            // Add the injectors for each system after the world is constructed
+            foreach (var system in systems)
             {
-                foreach (var resourceField in resourceFields)
+                // find target fields
+                var injectionTargetFields = system.GetType().GetFields()
+                    .Where(fi => fi.CustomAttributes.Any(attr => attr.AttributeType == typeof(GroupAttribute)))
+                    .ToArray();
+                // Create the instances
+                var injectionTargets = injectionTargetFields
+                    .Select(fi => Activator.CreateInstance(fi.FieldType))
+                    .ToArray();
+                for (int i = 0; i < injectionTargets.Length; i++)
                 {
-                    resourceField.SetValue(systemInstance, world.resourceMap[resourceField.FieldType]);
+                    // Set the initial value of the fields
+                    injectionTargetFields[i].SetValue(system, injectionTargets[i]);
+                }
+                // Create the injectors for the fields
+                var injectors = injectionTargets.Select(obj => new GroupInjector(world, obj));
+                // Register the injectors for the system
+                world.groupInjectorMap.Add(system, injectors.ToList());
+            }
+
+            return world;
+        }
+        #endregion
+
+        public T GetDependency<T>() where T : class => dependencyMap[typeof(T)] as T;
+
+        /// <summary>
+        /// Post a message and let all eligible systems handle it.
+        /// </summary>
+        /// <param name="message">Message to post</param>
+        public void Post(IMessage message)
+        {
+            var systems = systemMap[message.GetType()];
+            var injectors = systems.SelectMany(system => groupInjectorMap[system]);
+            Parallel.ForEach(injectors, injector => injector.Inject());
+            Parallel.ForEach(systems, system => system.Execute(this, message));
+            Parallel.ForEach(injectors, injector => injector.WriteAndUnlock());
+        }
+
+        #region Archetype creation
+        /// <summary>
+        /// Create a new archetype.
+        /// </summary>
+        /// <param name="types">Component types that make up the archetype</param>
+        /// <returns>New archetype</returns>
+        public Archetype CreateArchetype(params Type[] types)
+        {
+            var archetype = new Archetype(nextArchetypeId++);
+            // Register the types for the archetype
+            archetypeMap[archetype] = types;
+            // Add types for reverse lookup
+            typeMap.Add(types, archetype);
+            // Create an archetype group for the new archetype
+            archetypeGroupMap[archetype] = new ArchetypeGroup(types);
+            // Update component groups
+            foreach (var componentGroup in componentGroups)
+            {
+                componentGroup.archetypeGroups = GetArchetypeGroups(componentGroup.types);
+            }
+            return archetype;
+        }
+
+        /// <summary>
+        /// Derive a new archetype from an existing archetype.
+        /// </summary>
+        /// <param name="parent">Archetype to derive from</param>
+        /// <param name="types">New component types to introduce</param>
+        /// <returns>New archetype derived from parent</returns>
+        public Archetype CreateArchetype(Archetype parent, params Type[] types)
+        {
+            var parentTypes = archetypeMap[parent];
+            return CreateArchetype(types.Union(parentTypes).ToArray());
+        }
+
+        /// <summary>
+        /// Derive a new archetype from multiple archetypes.
+        /// </summary>
+        /// <param name="parents">Archetypes to derive from</param>
+        /// <param name="types">New component types to introduce</param>
+        /// <returns>New archetype derived from parents</returns>
+        public Archetype CreateArchetype(Archetype[] parents, params Type[] types)
+        {
+            var parentTypes = parents.SelectMany(parent => archetypeMap[parent]);
+            return CreateArchetype(types.Union(parentTypes).ToArray());
+        }
+
+        /// <summary>
+        /// Create a new archetype by combining archetypes.
+        /// </summary>
+        /// <param name="archetypes">Archetypes to combine</param>
+        /// <returns>New archetype</returns>
+        public Archetype CreateArchetype(params Archetype[] archetypes)
+        {
+            var types = archetypes.SelectMany(archetype => archetypeMap[archetype]).Distinct();
+            return CreateArchetype(types.ToArray());
+        }
+        #endregion
+
+        #region Entity creation/destruction/modification
+        /// <summary>
+        /// Create a new entity.
+        /// </summary>
+        /// <param name="archetype">Archetype to base the entity on</param>
+        /// <returns>A new entity adhering to the specified archetype</returns>
+        public Entity CreateEntity(Archetype archetype)
+        {
+            var entity = new Entity(GetNextEntityId());
+            // Register its archetype
+            entityArchetypeMap[entity] = archetype;
+            // Add it to the archetype group and map the entity to the group
+            var archetypeGroup = archetypeGroupMap[archetype];
+            entityArchetypeGroupMap[entity] = archetypeGroup;
+            archetypeGroup.Add(entity, ref entityIndexMap);
+            return entity;
+
+            int GetNextEntityId()
+            {
+                // Find a free entity id
+                if (openEntityIds.Count > 0)
+                {
+                    return openEntityIds.Dequeue();
+                }
+                // Generate a new one if no free ones are available
+                return nextEntityId++;
+            }
+        }
+
+        /// <summary>
+        /// Destroy an existing entity.
+        /// </summary>
+        /// <param name="entity">Entity to destroy</param>
+        public void DestroyEntity(Entity entity)
+        {
+            // Get the archetype group that the entity belongs to
+            var archetypeGroup = entityArchetypeGroupMap[entity];
+            // Remove the entity from the archetype group and pass the entityIndexMap to be modified to reflect changes
+            archetypeGroup.Remove(entity, ref entityIndexMap);
+            // Ensure that the id can be reused
+            openEntityIds.Enqueue(entity.handle);
+        }
+
+        /// <summary>
+        /// Get a reference to a component belonging to an entity.
+        /// </summary>
+        /// <typeparam name="T">The type of the component</typeparam>
+        /// <param name="entity">The entity the component belongs to</param>
+        /// <returns>Reference to the component</returns>
+        public ref T Ref<T>(Entity entity)
+            where T : struct, IComponent
+        {
+            // Find the entity's archetype group
+            var archetypeGroup = entityArchetypeGroupMap[entity];
+            // Find the index inside the group
+            var index = entityIndexMap[entity];
+            // Finally return a reference to the component inside the group
+            return ref archetypeGroup.Ref<T>(index);
+        }
+        #endregion
+
+        /// <summary>
+        /// Create a new component group.
+        /// </summary>
+        /// <param name="types">Component types included in the group.</param>
+        /// <returns>A component group with components specified by types.</returns>
+        public ComponentGroup CreateComponentGroup(params Type[] types)
+        {
+            // Find the archetype groups that contain all the required types
+            var archetypeGroups = GetArchetypeGroups(types);
+            // Create a new component group based on the selected archetype groups
+            var componentGroup = new ComponentGroup(archetypeGroups, types);
+            // Fill the group with the component data of all the archetype groups
+            componentGroup.UpdateStream();
+            componentGroups.Add(componentGroup);
+            return componentGroup;
+        }
+
+        private ArchetypeGroup[] GetArchetypeGroups(Type[] types)
+        {
+            var archetypeGroups = new List<ArchetypeGroup>();
+            for (var i = 0; i < nextArchetypeId; i++)
+            {
+                var types_ = archetypeMap.Get(i);
+                // Check if all the required types can be found in the archetype group
+                if (types.All(t => types_.Contains(t)))
+                {
+                    // If so, add it to the list
+                    archetypeGroups.Add(archetypeGroupMap.Get(i));
                 }
             }
+            return archetypeGroups.ToArray();
         }
 
-        private ComponentGroup GetComponentGroup(Type[] readTypes, Type[] writeTypes)
-        {
-            var index = componentGroups.FindIndex(componentGroup => componentGroup.IsEquivalentTo(readTypes, writeTypes));
-            if (index >= 0)
-            {
-                return componentGroups[index];
-            }
-            else
-            {
-                var newComponentGroup = new ComponentGroup(readTypes, writeTypes, size);
-                componentGroups.Add(newComponentGroup);
-                return newComponentGroup;
-            }
-        }
-
-
+        /// <summary>
+        /// Get the archetype of an entity.
+        /// </summary>
+        /// <param name="entity">Entity from which to look up the archetype</param>
+        /// <returns>Archetype of entity</returns>
+        public Archetype GetArchetype(Entity entity) => entityArchetypeMap[entity];
     }
-
-
 }

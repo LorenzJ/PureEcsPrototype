@@ -11,8 +11,8 @@ namespace Game.Systems
         public class Data
         {
             public int length;
-            public RwArray<Position> positions;
-            public RoArray<Heading> directions;
+            public RwDataStream<Position> positions;
+            public RoDataStream<Heading> directions;
         }
         [Group] public Data data;
 

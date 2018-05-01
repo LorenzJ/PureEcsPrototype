@@ -1,29 +1,17 @@
-﻿using System;
-
-namespace TinyEcs
+﻿namespace TinyEcs
 {
     /// <summary>
-    /// A handle to identify and link components.
+    /// An entity is a key that defines a relationship between different components.
     /// </summary>
-    public struct Entity : IEquatable<Entity>, IComparable<Entity>
+    public struct Entity : IHandle<int>, IData
     {
         internal int handle;
 
-        internal Entity(int handle)
+        public Entity(int handle) : this()
         {
             this.handle = handle;
         }
 
-        public int CompareTo(Entity other) => handle - other.handle;
-
-        public override bool Equals(object obj) => obj is Entity other && Equals(other);
-        public bool Equals(Entity other) => handle == other.handle;
-        public override int GetHashCode() => unchecked(780127187 * -1521134295 + handle.GetHashCode());
-        public static bool operator ==(Entity entity1, Entity entity2) => entity1.handle == entity2.handle;
-        public static bool operator !=(Entity entity1, Entity entity2) => !(entity1 == entity2);
-        public static bool operator <(Entity entity1, Entity entity2) => entity1.handle < entity2.handle;
-        public static bool operator >(Entity entity1, Entity entity2) => entity1.handle > entity2.handle;
-        public static bool operator <=(Entity entity1, Entity entity2) => entity1.handle <= entity2.handle;
-        public static bool operator >=(Entity entity1, Entity entity2) => entity1.handle >= entity2.handle;
+        public int Handle => handle;
     }
 }
