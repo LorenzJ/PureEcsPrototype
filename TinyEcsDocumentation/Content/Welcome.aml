@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="04a74a00-81ea-4783-bb2b-c815006adb5f" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>TinyEcs, a small pure ecs written entirely in C#.</para>
+		</introduction>
+
+		<section>
+			<title>Getting Started</title>
+			<content>
+        <list class="bullet">
+          <listItem>
+            <para><link xlink:href="0f19c9cf-3b86-44d9-b394-4575e60f083d" /></para>
+          </listItem>
+        </list>
+      </content>
+		</section>
+
+		<relatedTopics>
+			<link xlink:href="13cd7c21-b213-49ba-b864-49c3de0ef2ec" />
+		</relatedTopics>
+	</developerConceptualDocument>
+</topic>

@@ -22,7 +22,9 @@ namespace TinyEcs
             }
         }
 
+        // The object to inject the components into
         private object targetObject;
+        // The backing component group
         private ComponentGroup componentGroup;
         FieldInfo lengthField;
         private FieldInfo entitiesField;
@@ -49,7 +51,6 @@ namespace TinyEcs
                 readInjectors.Select(ri => ri.type)
                 .Union(writeInjectors.Select(wi => wi.type))
                 .Union(tags).ToArray();
-
             componentGroup = world.CreateComponentGroup(types);
 
             // Check if all fields were handled, otherwise throw an exception.
@@ -119,7 +120,7 @@ namespace TinyEcs
         {
             var readFields = fields
                 .Where(fi => fi.FieldType.IsGenericType 
-                    && fi.FieldType != typeof(RoDataStream<Entity>)
+                    && fi.FieldType != typeof(RoDataStream<Entity>) // Make sure not to include entities in the search
                     && fi.FieldType.GetGenericTypeDefinition() == typeof(RoDataStream<>))
                 .ToArray();
 

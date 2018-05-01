@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="0f19c9cf-3b86-44d9-b394-4575e60f083d" revisionNumber="1">
+  <developerHowToDocument
+    xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <introduction>
+      <para>Getting started by creating your first world.</para>
+    </introduction>
+
+    <procedure>
+      <title>Creating a world.</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>Create a message.</para>
+            <code language="c#">
+              <![CDATA[
+              // A message is a struct implementing the IMessage interface
+              struct UpdateMessage : IMessage
+              {
+                private float deltaTime;
+                public UpdateMessage(float deltaTime)
+                {
+                  this.deltaTime = deltaTime;
+                }
+                public float DeltaTime => deltaTime;
+              }]]>
+            </code>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Create a component.</para>
+            <code language="c#">
+              <![CDATA[
+              // A component is a mutable struct implementing the IComponent interface
+              struct Position : IComponent
+              {
+                public float x, y;
+              }]]>
+            </code>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Create a system.</para>
+            <code language="c#">
+              <![CDATA[
+              // Create a system that executes on the UpdateMessage message.
+              class MoveRightSystem : ComponentSystem<UpdateMessage>
+              {
+                // A class to store the necessary component data
+                public class Data
+                {
+                  public int length; // This will store the amount of entities in this group
+                  public RwDataStream<Position> positions; // A stream of position components that allows for both reading and writing.
+                }
+                [Group] public Data data; // This field will be used to inject the component data into.
+                
+                protected override void Execute(World world, UpdateMessage message)
+                {
+                  // Update all the positions
+                  for (var i = 0; i < data.length; i++)
+                  {
+                    positions[i].x += message.DeltaTime;
+                  }
+                }
+              }]]>
+            </code>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Create and simulate the world.</para>
+            <code language="c#">
+              <![CDATA[
+              var world = World.Create();
+              var archetype = World.CreateArchetype(typeof(Position));
+              var entity = World.CreateEntity(archetype);
+              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).x}");
+              world.Post(new UpdateMessage(0.16f));
+              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).x}");
+              world.Post(new UpdateMessage(0.16f));
+              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).x}");
+              ]]>
+            </code>
+          </content>
+        </step>
+      </steps>
+    </procedure>
+
+    <relatedTopics>
+      <codeEntityReference>T:TinyEcs.World</codeEntityReference>
+      <codeEntityReference>T:TinyEcs.IMessage</codeEntityReference>
+      <codeEntityReference>T:TinyEcs.IComponent</codeEntityReference>
+      <codeEntityReference>T:TinyEcs.Entity</codeEntityReference>
+      <codeEntityReference>T:TinyEcs.ComponentSystem`1</codeEntityReference>
+    </relatedTopics>
+  </developerHowToDocument>
+</topic>

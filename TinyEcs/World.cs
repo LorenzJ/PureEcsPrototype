@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TinyEcs
 {
     /// <summary>
-    /// The World class glues Entities, Components and ComponentSystems together.
+    /// The World class glues <see cref="Entity" />, <see cref="IComponent"/> and <see cref="ComponentSystem{T}"/> together.
     /// Use this class to create and destroy entities, get references to components and schedule systems.
     /// It also allows very basic Dependency Injection for ComponentSystems and a simple resource locator.
     /// </summary>
@@ -165,6 +165,7 @@ namespace TinyEcs
         /// Post a message and let all eligible systems handle it.
         /// </summary>
         /// <param name="message">Message to post</param>
+        /// <remarks>Systems will run in parallel, directly using this class in the Execute method of a system is unsafe.</remarks>
         public void Post(IMessage message)
         {
             var systems = systemMap[message.GetType()];
