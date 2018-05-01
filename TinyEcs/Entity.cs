@@ -7,11 +7,14 @@
     {
         internal int handle;
 
-        public Entity(int handle) : this()
+        internal Entity(int handle) : this()
         {
             this.handle = handle;
         }
 
+        /// <summary>
+        /// A handle that represents this entity.
+        /// </summary>
         public int Handle => handle;
     }
 }

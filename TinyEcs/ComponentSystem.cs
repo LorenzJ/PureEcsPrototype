@@ -11,6 +11,11 @@
     public abstract class ComponentSystem<T> : ISystem
         where T : IMessage
     {
+        /// <summary>
+        /// Custom logic for a system should be ran here.
+        /// </summary>
+        /// <param name="world">The world this system instance belongs to.</param>
+        /// <param name="message">The message this system is listening for.</param>
         internal protected abstract void Execute(World world, T message);
 
         void ISystem.Execute(World world, IMessage message)

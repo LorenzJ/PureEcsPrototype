@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace TinyEcs
 {
+    /// <summary>
+    /// The World class glues Entities, Components and ComponentSystems together.
+    /// Use this class to create and destroy entities, get references to components and schedule systems.
+    /// It also allows very basic Dependency Injection for ComponentSystems and a simple resource locator.
+    /// </summary>
     public class World
     {
         /// <summary>
@@ -76,6 +81,11 @@ namespace TinyEcs
             this.dependencyMap = dependencyMap;
         }
 
+        /// <summary>
+        /// Create a new instance of a world.
+        /// Will automatically create all ComponentSystems it can find and inject their dependencies.
+        /// </summary>
+        /// <returns>New instance of World</returns>
         public static World Create()
         {
             // Get all loaded assemblies
@@ -144,6 +154,11 @@ namespace TinyEcs
         }
         #endregion
 
+        /// <summary>
+        /// Gets a resource that has been injected as a dependency in a ComponentSystem.
+        /// </summary>
+        /// <typeparam name="T">Type of resource.</typeparam>
+        /// <returns>Resource of type T</returns>
         public T GetDependency<T>() where T : class => dependencyMap[typeof(T)] as T;
 
         /// <summary>
@@ -284,7 +299,7 @@ namespace TinyEcs
         /// </summary>
         /// <param name="types">Component types included in the group.</param>
         /// <returns>A component group with components specified by types.</returns>
-        public ComponentGroup CreateComponentGroup(params Type[] types)
+        internal ComponentGroup CreateComponentGroup(params Type[] types)
         {
             // Find the archetype groups that contain all the required types
             var archetypeGroups = GetArchetypeGroups(types);

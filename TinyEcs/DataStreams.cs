@@ -1,5 +1,9 @@
 ﻿namespace TinyEcs
 {
+    /// <summary>
+    /// A readable and writable array of components.
+    /// </summary>
+    /// <typeparam name="T">The type of component</typeparam>
     public struct RwDataStream<T>
         where T : struct, IComponent
     {
@@ -28,6 +32,10 @@
         public static explicit operator T[](RwDataStream<T> rw) => rw.items;
     }
 
+    /// <summary>
+    /// A read-only array of components or entities.
+    /// </summary>
+    /// <typeparam name="T">Either the type of component or entity</typeparam>
     public struct RoDataStream<T>
         where T : struct, IData
     {

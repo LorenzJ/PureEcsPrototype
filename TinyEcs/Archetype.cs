@@ -7,11 +7,14 @@
     {
         internal int handle;
 
-        public Archetype(int handle)
+        internal Archetype(int handle)
         {
             this.handle = handle;
         }
 
+        /// <summary>
+        /// A handle representing this archetype.
+        /// </summary>
         public int Handle => handle;
     }
 }

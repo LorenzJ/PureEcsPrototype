@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace TinyEcs
 {
-    public class ComponentGroup
+    internal class ComponentGroup
     {
         internal ArchetypeGroup[] archetypeGroups;
         private Dictionary<Type, Array2> componentsMap;
@@ -30,7 +30,7 @@ namespace TinyEcs
             }
         }
 
-        public void UpdateStream()
+        internal void UpdateStream()
         {
             // Early exit if there are no archetype groups
             if (archetypeGroups.Length == 0)
