@@ -39,7 +39,7 @@
               // Components are data containers for your entities
               struct Position : IComponent
               {
-                public float x, y;
+                public float X, Y;
               }]]>
             </code>
           </content>
@@ -57,17 +57,19 @@
                 // A class to store the necessary component data
                 public class Data
                 {
-                  public int length; // This will store the amount of entities in this group
-                  public RwDataStream<Position> positions; // A stream of position components that allows for both reading and writing
+                  public int Length; // This will store the amount of entities in this group
+                                     // This field must be called Length. (case-sensitive)
+                  public RwDataStream<Position> Positions; // A stream of position components that allows for both reading and writing
+                                                           // Only the type matters in selection, you can name it whatever you want.
                 }
                 [Group] public Data data; // This field will be used to inject the component data into
                 
                 protected override void Execute(World world, UpdateMessage message)
                 {
                   // Update all the positions
-                  for (var i = 0; i < data.length; i++)
+                  for (var i = 0; i < data.Length; i++)
                   {
-                    positions[i].x += message.DeltaTime;
+                    data.Positions[i].X += message.DeltaTime;
                   }
                 }
               }]]>
@@ -82,11 +84,11 @@
               var world = World.Create();
               var archetype = World.CreateArchetype(typeof(Position));
               var entity = World.CreateEntity(archetype);
-              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).x}");
+              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).X}");
               world.Post(new UpdateMessage(0.16f));
-              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).x}");
+              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).X}");
               world.Post(new UpdateMessage(0.16f));
-              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).x}");
+              Console.Out.WriteLine($"x = {world.Ref<Position>(entity).X}");
               ]]>
             </code>
           </content>

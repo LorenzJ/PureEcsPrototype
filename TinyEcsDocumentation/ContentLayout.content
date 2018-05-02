@@ -4,7 +4,12 @@
     <HelpKeywords>
       <HelpKeyword index="K" term="Welcome" />
     </HelpKeywords>
-    <Topic id="0f19c9cf-3b86-44d9-b394-4575e60f083d" visible="True" isSelected="true" />
+    <Topic id="0f19c9cf-3b86-44d9-b394-4575e60f083d" visible="True" tocTitle="First World">
+      <HelpKeywords>
+        <HelpKeyword index="K" term="World" />
+      </HelpKeywords>
+    </Topic>
+    <Topic id="331c162e-3c52-465c-8057-5695dacf0821" visible="True" isSelected="true" />
   </Topic>
   <Topic id="13cd7c21-b213-49ba-b864-49c3de0ef2ec" visible="True" isExpanded="true" title="Version History">
     <HelpKeywords>

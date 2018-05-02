@@ -302,6 +302,14 @@ namespace TinyEcs
             // Finally return a reference to the component inside the group
             return ref archetypeGroup.Ref<T>(index);
         }
+
+        //public void Add<T>(Entity entity)
+        //    where T : struct, IComponent
+        //{
+        //    var archetype = entityArchetypeMap[entity];
+        //    var types = archetypeMap[archetype].Concat(new Type[] { typeof(T) });
+            
+        //}
         #endregion
 
         /// <summary>

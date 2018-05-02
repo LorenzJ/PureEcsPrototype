@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="331c162e-3c52-465c-8057-5695dacf0821" revisionNumber="1">
+  <developerWalkthroughDocument
+    xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <!--
+    <summary>
+      <para>Optional summary abstract</para>
+    </summary>
+    -->
+
+    <introduction>
+      <!-- Uncomment this to generate an outline of the section and sub-section
+           titles.  Specify a numeric value as the inner text to limit it to
+           a specific number of sub-topics when creating the outline.  Specify
+           zero (0) to limit it to top-level sections only.  -->
+      <!-- <autoOutline /> -->
+
+      <para>
+        A brief introduction to working with <codeEntityReference>T:TinyEcs.ComponentSystem{T}</codeEntityReference>
+      </para>
+    </introduction>
+
+    <prerequisites>
+      <content>
+        <para>
+          <link xlink:href="0f19c9cf-3b86-44d9-b394-4575e60f083d" />
+        </para>
+      </content>
+    </prerequisites>
+
+    <section address="SimpleMultiComp">
+      <title>Creating a system that operates on multiple components</title>
+      <content>
+        <code language="c#" keepSeeTags="true">
+          <![CDATA[
+          public class MovementSystem : ComponentSystem<UpdateMessage>
+          {
+            public class Data
+            {
+              public int Length;
+              public RwDataStream<Position> Positions;
+              public RoDataStream<Heading> Headings;
+            }
+            [Group] public Data data; // Will select all entities with a Position and Heading component
+            public void Execute(World world, UpdateMessage message)
+            {
+              for (var i = 0; i < data.Length; i++)
+              {
+                // The component streams are always stored in parallel
+                data.Positions[i].Vector += data.Headings[i].Vector * message.DeltaTime;
+              }
+            }
+          }
+          ]]>
+        </code>
+      </content>
+    </section>
+
+    <section address="WithEntities">
+      <title>Getting a stream of entities</title>
+      <content>
+        <code language="c#">
+          <![CDATA[
+          public class HealthSystem : ComponentSystem<UpdateMessage>
+          {
+            private SomeDependency dependency;
+            
+            public class Data
+            {
+              public int Length;
+              public RoDataStream<Entity> Entities; // Must be this exact type, name does not matter.
+              public RoDataStream<Health> Healths;
+            }
+            [Group] public Data data;
+            
+            public HealthSystem(SomeDependency dependency)
+            {
+              this.dependency = dependency;
+            }
+            
+            public void Execute(World world, UpdateMessage message)
+            {
+               for (var i = 0; i < data.Length; i++)
+               {
+                if (data.Healths[i].Value <= 0)
+                {
+                  dependency.DoSomethingWithEntity(data.Entities[i]);
+                }
+              }
+            }
+          }]]>
+        </code>
+      </content>
+    </section>
+
+    <section address="WithTags">
+      <title>Including entities with a tag</title>
+      <content>
+        <code language="c#">
+          <![CDATA[
+          public class RegenSystem : ComponentSystem<UpdateMessage>
+          {
+            public class Data
+            {
+              public int Length;
+              public RoDataStream<Health> Healths;
+              public RegenTag RegenTag; // Entities must have the RegenTag to be selected
+            }
+            [Group] public Data data;
+            
+            public void Execute(World world, UpdateMessage message)
+            {
+               for (var i = 0; i < data.Length; i++)
+               {
+                data.Healths[i].Value = Math.Min(data.Healths[i].MaxValue, data.Healths[i].Value + message.deltaTime);
+              }
+            }
+          }]]>
+        </code>
+      </content>
+    </section>
+    
+    <section address="ExcludingEntities">
+      <title>Excluding entities marked by a tag</title>
+      <content>
+        <code language="c#" keepSeeTags="true">
+          <![CDATA[
+          public class MovementSystem : ComponentSystem<UpdateMessage>
+          {
+            public class Data
+            {
+              public int Length;
+              public RwDataStream<Position> Positions;
+              public RoDataStream<Heading> Headings;
+              [Exclude] public FrozenTag ExcludeFrozenTag; // Exclude the FrozenTag
+              // As many tags as desired can be added
+            }
+            [Group] public Data data; // Will select all entities with a Position and Heading component and without a FrozenTag tag.
+            public void Execute(World world, UpdateMessage message)
+            {
+              for (var i = 0; i < data.Length; i++)
+              {
+                data.Positions[i].Vector += data.Headings[i].Vector * message.DeltaTime;
+              }
+            }
+          }
+          ]]>
+        </code>
+      </content>
+    </section>
+
+    <relatedTopics>
+      
+    </relatedTopics>
+  </developerWalkthroughDocument>
+</topic>
