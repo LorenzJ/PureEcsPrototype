@@ -19,14 +19,14 @@ namespace Game.Systems
         {
             var playerBulletsToEnemies = Task.Run(() => 
                 GetCollisionPairs(
-                    playerBullets.positions, playerBullets.colliders, playerBullets.entities, playerBullets.length,
-                    enemies.positions, enemies.colliders, enemies.entities, enemies.length))
+                    playerBullets.Positions, playerBullets.Colliders, playerBullets.Entities, playerBullets.Length,
+                    enemies.Positions, enemies.Colliders, enemies.Entities, enemies.Length))
                 .ContinueWith(HandleCollisions);
 
             var enemyBulletsToPlayers = Task.Run(() =>
                 GetCollisionPairs(
-                    enemyBullets.positions, enemyBullets.colliders, enemyBullets.entities, enemyBullets.length,
-                    players.positions, players.colliders, players.entities, players.length))
+                    enemyBullets.Positions, enemyBullets.Colliders, enemyBullets.Entities, enemyBullets.Length,
+                    players.Positions, players.Colliders, players.Entities, players.Length))
                 .ContinueWith(HandleCollisions);
             
             Task.WaitAll(playerBulletsToEnemies, enemyBulletsToPlayers);
@@ -47,8 +47,8 @@ namespace Game.Systems
             {
                 for (var j = 0; j < length2; j++)
                 {
-                    var v = (positions2[j].vector + colliders2[j].offset) - (positions1[i].vector + colliders1[i].offset);
-                    var r = colliders1[i].radius + colliders2[j].radius;
+                    var v = (positions2[j].Vector + colliders2[j].Offset) - (positions1[i].Vector + colliders1[i].Offset);
+                    var r = colliders1[i].Radius + colliders2[j].Radius;
                     var rSquared = r * r;
                     if (v.LengthSquared() < rSquared)
                     {

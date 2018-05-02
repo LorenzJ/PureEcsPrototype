@@ -17,23 +17,23 @@ namespace Game.Dependencies
     {
         public class Bullets
         {
-            public int length;
-            public BulletTag bulletTag;
+            public int Length;
+            public BulletTag BulletTag;
         }
         public class Ships
         {
-            public int length;
-            public ShipTag shipTag;
+            public int Length;
+            public ShipTag ShipTag;
         }
         public class PlayerObjects
         {
-            public int length;
-            public PlayerTag playerTag;
+            public int Length;
+            public PlayerTag PlayerTag;
         }
         public class EnemyObjects
         {
-            public int length;
-            public EnemyTag enemyTag;
+            public int Length;
+            public EnemyTag EnemyTag;
         }
         [Group] public Bullets bullets;
         [Group] public Ships ships;
@@ -49,10 +49,10 @@ namespace Game.Dependencies
 
         protected override void Execute(World world, UpdateMessage message)
         {
-            debugInfo.BulletCount = bullets.length;
-            debugInfo.PlayerCount = players.length;
-            debugInfo.ShipCount = ships.length;
-            debugInfo.EnemyCount = enemies.length;
+            debugInfo.BulletCount = bullets.Length;
+            debugInfo.PlayerCount = players.Length;
+            debugInfo.ShipCount = ships.Length;
+            debugInfo.EnemyCount = enemies.Length;
         }
     }
 }

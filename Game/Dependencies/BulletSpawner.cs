@@ -8,8 +8,8 @@ namespace Game.Dependencies
 {
     public class BulletSpawner : IOnLoad
     {
-        Archetype[] bulletTypes = new Archetype[2];
-        List<BulletCommand> bulletCommands = new List<BulletCommand>();
+        private Archetype[] bulletTypes = new Archetype[2];
+        private List<BulletCommand> bulletCommands = new List<BulletCommand>();
 
         public enum BulletType : int
         {
@@ -18,15 +18,15 @@ namespace Game.Dependencies
         }
         public struct BulletCommand
         {
-            public Position position;
-            public Heading heading;
-            public BulletType bulletType;
+            public Position Position;
+            public Heading Heading;
+            public BulletType BulletType;
 
             public BulletCommand(Position position, Heading heading, BulletType bulletType)
             {
-                this.position = position;
-                this.heading = heading;
-                this.bulletType = bulletType;
+                Position = position;
+                Heading = heading;
+                BulletType = bulletType;
             }
         }
 
@@ -57,9 +57,9 @@ namespace Game.Dependencies
         {
             foreach (var bulletCommand in bulletCommands)
             {
-                var newBullet = world.CreateEntity(bulletTypes[(int)bulletCommand.bulletType]);
-                world.Ref<Position>(newBullet) = bulletCommand.position;
-                world.Ref<Heading>(newBullet) = bulletCommand.heading;
+                var newBullet = world.CreateEntity(bulletTypes[(int)bulletCommand.BulletType]);
+                world.Ref<Position>(newBullet) = bulletCommand.Position;
+                world.Ref<Heading>(newBullet) = bulletCommand.Heading;
             }
             bulletCommands.Clear();
         }

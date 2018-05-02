@@ -22,9 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenGL.Net.Math" Version="0.7.1">
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
     <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />
   </ItemGroup>
 

@@ -5,11 +5,11 @@ namespace Game.Components.Transform
 {
     public struct Heading : IComponent
     {
-        public Vector2 vector;
+        public Vector2 Vector;
 
         public Heading(Vector2 vector)
         {
-            this.vector = vector;
+            Vector = vector;
         }
     }
 }

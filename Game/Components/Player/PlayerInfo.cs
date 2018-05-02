@@ -4,8 +4,8 @@ namespace Game.Components.Player
 {
     public struct PlayerInfo : IComponent
     {
-        public int id;
-        public float speed;
-        public float fireTimeout;
+        public int Id;
+        public float Speed;
+        public float FireTimeout;
     }
 }

@@ -31,7 +31,7 @@ namespace Game
             var enemyBulletType = world.CreateArchetype(bulletType, typeof(EnemyTag));
 
             var player = world.CreateEntity(playerShipType);
-            world.Ref<PlayerInfo>(player).speed = 0.5f;
+            world.Ref<PlayerInfo>(player).Speed = 0.5f;
         }
 
         public void Update(float deltaTime)

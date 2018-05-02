@@ -10,15 +10,15 @@ namespace TinyEcs
 
         private struct Injector
         {
-            public Type type;
-            public FieldInfo field;
-            public ConstructorInfo constructor;
+            public Type Type;
+            public FieldInfo Field;
+            public ConstructorInfo Constructor;
 
             public Injector(Type type, FieldInfo field, ConstructorInfo constructor)
             {
-                this.type = type;
-                this.field = field;
-                this.constructor = constructor;
+                Type = type;
+                Field = field;
+                Constructor = constructor;
             }
         }
 
@@ -39,7 +39,7 @@ namespace TinyEcs
             var targetType = targetObject.GetType();
 
             var fields = targetType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            lengthField = targetType.GetField("length", bindingFlags);
+            lengthField = targetType.GetField("Length", bindingFlags);
             entitiesField = fields
                 .Where(fi => fi.FieldType == typeof(RoDataStream<Entity>))
                 .SingleOrDefault();
@@ -50,8 +50,8 @@ namespace TinyEcs
             excludeTags = FindExcludeTags(fields);
 
             var includes =
-                readInjectors.Select(ri => ri.type)
-                .Union(writeInjectors.Select(wi => wi.type))
+                readInjectors.Select(ri => ri.Type)
+                .Union(writeInjectors.Select(wi => wi.Type))
                 .Union(includeTags).ToArray();
 
             componentGroup = world.CreateComponentGroup(includes, excludeTags);
@@ -79,15 +79,15 @@ namespace TinyEcs
             // Inject the write injectors
             foreach (var injector in writeInjectors)
             {
-                var stream = injector.constructor.Invoke(new object[] { componentGroup.GetWrite(injector.type) });
-                injector.field.SetValue(targetObject, stream);
+                var stream = injector.Constructor.Invoke(new object[] { componentGroup.GetWrite(injector.Type) });
+                injector.Field.SetValue(targetObject, stream);
             }
 
             // Do the same for the read injectors
             foreach (var injector in readInjectors)
             {
-                var stream = injector.constructor.Invoke(new object[] { componentGroup.GetRead(injector.type) });
-                injector.field.SetValue(targetObject, stream);
+                var stream = injector.Constructor.Invoke(new object[] { componentGroup.GetRead(injector.Type) });
+                injector.Field.SetValue(targetObject, stream);
             }
 
             // Inject length and entities
@@ -105,7 +105,7 @@ namespace TinyEcs
         {
             foreach (var injector in writeInjectors)
             {
-                componentGroup.WriteAndUnlock(injector.type);
+                componentGroup.WriteAndUnlock(injector.Type);
             }
         }
 
@@ -137,13 +137,13 @@ namespace TinyEcs
             var injectors = new Injector[fields.Length];
             for (var i = 0; i < injectors.Length; i++)
             {
-                injectors[i].type = fields[i].FieldType.GetGenericArguments()[0];
-                injectors[i].field = fields[i];
+                injectors[i].Type = fields[i].FieldType.GetGenericArguments()[0];
+                injectors[i].Field = fields[i];
 
                 // Get the generic type of the data stream
-                var genericDataStreamType = dataStreamType.MakeGenericType(injectors[i].type);
+                var genericDataStreamType = dataStreamType.MakeGenericType(injectors[i].Type);
                 // Get the constructor
-                injectors[i].constructor = genericDataStreamType.GetConstructor(new Type[] { injectors[i].type.MakeArrayType() });
+                injectors[i].Constructor = genericDataStreamType.GetConstructor(new Type[] { injectors[i].Type.MakeArrayType() });
             }
             return injectors;
         }

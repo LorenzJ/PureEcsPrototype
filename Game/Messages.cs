@@ -1,5 +1,4 @@
-﻿using OpenGL;
-using System.Numerics;
+﻿using System.Numerics;
 using TinyEcs;
 
 namespace Game

@@ -15,10 +15,10 @@ namespace Game.Systems
 
         public class Data
         {
-            public int length;
-            public RoDataStream<Input> inputs;
-            public RoDataStream<Position> positions;
-            public RwDataStream<PlayerInfo> infos;
+            public int Length;
+            public RoDataStream<Input> Inputs;
+            public RoDataStream<Position> Positions;
+            public RwDataStream<PlayerInfo> Infos;
         }
         [Group] public Data data;
 
@@ -29,20 +29,20 @@ namespace Game.Systems
         }
         protected override void Execute(World world, UpdateMessage message)
         {
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
-                data.infos[i].fireTimeout -= message.DeltaTime;
+                data.Infos[i].FireTimeout -= message.DeltaTime;
             }
 
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
-                if ((data.inputs[i].commands & InputCommands.Fire) > 0 && data.infos[i].fireTimeout <= 0)
+                if ((data.Inputs[i].Commands & InputCommands.Fire) > 0 && data.Infos[i].FireTimeout <= 0)
                 {
                     bulletSpawner.Spawn(
-                        new BulletSpawner.BulletCommand(data.positions[i], 
+                        new BulletSpawner.BulletCommand(data.Positions[i], 
                         new Heading(new Vector2(0, 1)), 
                         BulletSpawner.BulletType.Player));
-                    data.infos[i].fireTimeout = 0.2f;
+                    data.Infos[i].FireTimeout = 0.2f;
                 }
             }
         }

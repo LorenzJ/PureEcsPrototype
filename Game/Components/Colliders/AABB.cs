@@ -1,18 +1,17 @@
-﻿using OpenGL;
-using System.Numerics;
+﻿using System.Numerics;
 using TinyEcs;
 
 namespace Game.Components.Colliders
 {
     public struct AABB : IComponent
     {
-        public Vector2 offset;
-        public Vector2 size;
+        public Vector2 Offset;
+        public Vector2 Size;
 
         public AABB(Vector2 offset, Vector2 size)
         {
-            this.offset = offset;
-            this.size = size;
+            Offset = offset;
+            Size = size;
         }
     }
 }

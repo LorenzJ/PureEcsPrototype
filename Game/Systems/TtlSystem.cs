@@ -11,9 +11,9 @@ namespace Game.Systems
     {
         public class Data
         {
-            public int length;
-            public RoDataStream<Entity> entities;
-            public RwDataStream<Ttl> ttls;
+            public int Length;
+            public RoDataStream<Entity> Entities;
+            public RwDataStream<Ttl> Ttls;
         }
         [Group] public Data data;
 
@@ -28,17 +28,17 @@ namespace Game.Systems
 
         protected override void Execute(World world, UpdateMessage message)
         {
-            if (data.length == 0) return;
-            var partitioner = Partitioner.Create(0, data.length);
+            if (data.Length == 0) return;
+            var partitioner = Partitioner.Create(0, data.Length);
             Parallel.ForEach(partitioner, () => new List<Entity>(),
                 (partition, state, list) =>
                 {
                     for (var i = partition.Item1; i < partition.Item2; i++)
                     {
-                        data.ttls[i].value -= message.DeltaTime;
-                        if (data.ttls[i].value <= 0)
+                        data.Ttls[i].Value -= message.DeltaTime;
+                        if (data.Ttls[i].Value <= 0)
                         {
-                            list.Add(data.entities[i]);
+                            list.Add(data.Entities[i]);
                         }
                     }
                     return list;

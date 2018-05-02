@@ -9,51 +9,51 @@ namespace Game.Systems
     {
         public class Data
         {
-            public int length;
-            public RwDataStream<Input> inputs;
-            public RoDataStream<PlayerInfo> playerInfos;
-            public RwDataStream<Heading> headings;
+            public int Length;
+            public RwDataStream<Input> Inputs;
+            public RoDataStream<PlayerInfo> PlayerInfos;
+            public RwDataStream<Heading> Headings;
         }
         [Group] public Data data;
 
         protected override void Execute(World world, InputMessage message)
         {
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
-                var id = data.playerInfos[i].id;
-                data.inputs[i].commands = message.inputCommands[id];
-                data.inputs[i].direction = message.directions[id];
+                var id = data.PlayerInfos[i].Id;
+                data.Inputs[i].Commands = message.inputCommands[id];
+                data.Inputs[i].Direction = message.directions[id];
             }
 
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
-                if ((data.inputs[i].commands & InputCommands.MoveRight) > 0)
+                if ((data.Inputs[i].Commands & InputCommands.MoveRight) > 0)
                 {
-                    data.inputs[i].direction.X += 1;
+                    data.Inputs[i].Direction.X += 1;
                 }
-                if ((data.inputs[i].commands & InputCommands.MoveLeft) > 0)
+                if ((data.Inputs[i].Commands & InputCommands.MoveLeft) > 0)
                 {
-                    data.inputs[i].direction.X -= 1;
+                    data.Inputs[i].Direction.X -= 1;
                 }
-                if ((data.inputs[i].commands & InputCommands.MoveUp) > 0)
+                if ((data.Inputs[i].Commands & InputCommands.MoveUp) > 0)
                 {
-                    data.inputs[i].direction.Y += 1;
+                    data.Inputs[i].Direction.Y += 1;
                 }
-                if ((data.inputs[i].commands & InputCommands.MoveDown) > 0)
+                if ((data.Inputs[i].Commands & InputCommands.MoveDown) > 0)
                 {
-                    data.inputs[i].direction.Y -= 1;
+                    data.Inputs[i].Direction.Y -= 1;
                 }
             }
 
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
-                if (data.inputs[i].direction.LengthSquared() > 0)
+                if (data.Inputs[i].Direction.LengthSquared() > 0)
                 {
-                    data.headings[i].vector = Vector2.Normalize(data.inputs[i].direction) * data.playerInfos[i].speed;
+                    data.Headings[i].Vector = Vector2.Normalize(data.Inputs[i].Direction) * data.PlayerInfos[i].Speed;
                 }
                 else
                 {
-                    data.headings[i].vector = default;
+                    data.Headings[i].Vector = default;
                 }
             }
         }
