@@ -47,7 +47,8 @@
     <SdkLinkTarget>Blank</SdkLinkTarget>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="(global)" isDocumented="True" />
-<NamespaceSummaryItem name="TinyEcs" isDocumented="True">A small pure entity-component-system written entirely in C#.</NamespaceSummaryItem></NamespaceSummaries>
+      <NamespaceSummaryItem name="TinyEcs" isDocumented="True">A small pure entity-component-system written entirely in C#.</NamespaceSummaryItem>
+    </NamespaceSummaries>
     <ProjectSummary>A small pure entity-component-system written entirely in C#.</ProjectSummary>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in order for Visual Studio to perform

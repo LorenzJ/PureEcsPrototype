@@ -1,7 +1,7 @@
 ﻿using OpenGL;
 using TinyEcs;
 
-namespace Game.Components
+namespace Game.Components.Player
 {
     public struct Input : IComponent
     {

@@ -1,7 +1,7 @@
 ﻿using Game.Components;
 using TinyEcs;
 
-namespace Game
+namespace Game.Dependencies
 {
     public class DebugInfo
     {

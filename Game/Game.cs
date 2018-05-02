@@ -2,6 +2,7 @@
 using Game.Components.Colliders;
 using Game.Components.Transform;
 using Game.Components.Utilities;
+using Game.Dependencies;
 using System;
 using TinyEcs;
 
@@ -27,17 +28,6 @@ namespace Game
             var enemyBulletType = world.CreateArchetype(bulletType, typeof(EnemyTag));
 
             var player = world.CreateEntity(playerShipType);
-           
-            var rng = new Random();
-            float nextFloat() => (float)(rng.NextDouble() - 0.5) * 2.0f;
-            for (int i = 0; i < 300000; i++)
-            {
-                var bullet = world.CreateEntity(playerBulletType);
-                world.Ref<Position>(bullet).vector = new OpenGL.Vertex2f(nextFloat(), nextFloat());
-                world.Ref<Heading>(bullet).vector = new OpenGL.Vertex2f(nextFloat(), nextFloat());
-                world.Ref<Ttl>(bullet).value = 1;//(float)(rng.NextDouble() * 10) + 5;
-            }
-            
         }
 
         public void Update(float deltaTime)

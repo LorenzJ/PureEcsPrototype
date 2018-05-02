@@ -1,8 +1,9 @@
 ﻿using Game.Components.Utilities;
+using Game.Dependencies;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TinyEcs;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
 
 namespace Game.Systems
 {

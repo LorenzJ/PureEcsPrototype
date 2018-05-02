@@ -1,4 +1,5 @@
 ﻿using Game;
+using Game.Dependencies;
 using GameGl;
 using OpenGL;
 using System;
@@ -57,15 +58,30 @@ namespace WindowsGame
             glControl.Invalidate();
         }
 
-        private void glControl_Render(object sender, GlControlEventArgs e)
+        private void GlControl_Render(object sender, GlControlEventArgs e)
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit);
             renderer.Render(game.Time);
         }
 
-        private void glControl_Resize(object sender, EventArgs e)
+        private void GlControl_Resize(object sender, EventArgs e)
         {
             Gl.Viewport(0, 0, ClientSize.Width, ClientSize.Height);
+        }
+
+        private void GlControl_KeyDown(object sender, KeyEventArgs e)
+        {
+            HandleKeyEvent(e, true);
+        }
+
+        private void HandleKeyEvent(KeyEventArgs e, bool keyDown)
+        {
+            
+        }
+
+        private void glControl_KeyUp(object sender, KeyEventArgs e)
+        {
+            HandleKeyEvent(e, false);
         }
     }
 }

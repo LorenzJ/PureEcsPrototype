@@ -1,4 +1,4 @@
-﻿using Game;
+﻿using Game.Dependencies;
 using System;
 using System.Linq;
 using System.Windows.Forms;

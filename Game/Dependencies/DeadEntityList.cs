@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using TinyEcs;
 
-namespace Game
+namespace Game.Dependencies
 {
     public class DeadEntityList
     {

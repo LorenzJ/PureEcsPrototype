@@ -3,7 +3,7 @@ using Game.Components;
 using TinyEcs;
 using System.Collections.Generic;
 
-namespace Game
+namespace Game.Dependencies
 {
     class BulletSpawner
     {
