@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TinyEcs
 {
     /// <summary>
-    /// The World class glues <see cref="Entity" />, <see cref="IComponent"/> and <see cref="ComponentSystem{T}"/> together.
+    /// The World class glues <see cref="Entity">entities</see>, <see cref="IComponent">components</see> and <see cref="ComponentSystem{T}">systems</see> together.
     /// Use this class to create and destroy entities, get references to components and schedule systems.
     /// It also allows very basic Dependency Injection for ComponentSystems and a simple resource locator.
     /// </summary>

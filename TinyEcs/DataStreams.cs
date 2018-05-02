@@ -29,6 +29,7 @@
         /// Length of the array may not match the length of the stream.
         /// </summary>
         /// <param name="rw">RwDataStream to cast.</param>
+        /// <returns>Array of <typeparamref name="T"/></returns>
         public static explicit operator T[](RwDataStream<T> rw) => rw.items;
     }
 
@@ -61,6 +62,7 @@
         /// Length of the array may not match the length of the stream.
         /// </summary>
         /// <param name="ro">RoDataStream to cast.</param>
+        /// <returns>Array of <typeparamref name="T"/></returns>
         public static explicit operator T[] (RoDataStream<T> ro) => ro.items;
     }
 }
