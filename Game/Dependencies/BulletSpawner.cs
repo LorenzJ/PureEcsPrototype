@@ -2,14 +2,14 @@
 using Game.Components;
 using TinyEcs;
 using System.Collections.Generic;
+using System;
 
 namespace Game.Dependencies
 {
-    class BulletSpawner
+    public class BulletSpawner : IOnLoad
     {
         Archetype[] bulletTypes = new Archetype[2];
         List<BulletCommand> bulletCommands = new List<BulletCommand>();
-        World world;
 
         public enum BulletType : int
         {
@@ -30,9 +30,8 @@ namespace Game.Dependencies
             }
         }
 
-        protected void OnLoad(World world)
+        public void OnLoad(World world)
         {
-            this.world = world;
             var bullet = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(Components.Colliders.Circle), typeof(BulletTag));
             bulletTypes[(int)BulletType.Player] = world.CreateArchetype(bullet, typeof(PlayerTag));
             bulletTypes[(int)BulletType.Enemy] = world.CreateArchetype(bullet, typeof(EnemyTag));
@@ -54,7 +53,7 @@ namespace Game.Dependencies
             }
         }
 
-        protected void Flush(IMessage message)
+        internal void Commit(World world)
         {
             foreach (var bulletCommand in bulletCommands)
             {

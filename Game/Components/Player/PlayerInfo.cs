@@ -6,5 +6,6 @@ namespace Game.Components.Player
     {
         public int id;
         public float speed;
+        public float fireTimeout;
     }
 }

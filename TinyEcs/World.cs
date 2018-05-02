@@ -150,6 +150,14 @@ namespace TinyEcs
                 world.groupInjectorMap.Add(system, injectors.ToList());
             }
 
+            // Call the OnLoad method on dependencies implementing IOnLoad
+            foreach (var dependency in dependencyMap.Values)
+            {
+                if (dependency is IOnLoad onLoad)
+                {
+                    onLoad.OnLoad(world);
+                }
+            }
             return world;
         }
         #endregion

@@ -12,6 +12,7 @@ namespace Game
     public class Game
     {
         private World world;
+        private BulletSpawner bulletSpawner;
         private float time;
 
         public World World { get => world; }
@@ -20,6 +21,7 @@ namespace Game
         public Game()
         {
             world = World.Create();
+            bulletSpawner = world.GetDependency<BulletSpawner>();
             var shipType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(ShipTag), typeof(Circle));
             var playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag), typeof(PlayerInfo), typeof(Input));
             var enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag));
@@ -39,6 +41,7 @@ namespace Game
             world.Post(new LateUpdateMessage(deltaTime));
             world.Post(new RenderMessage());
             world.GetDependency<DeadEntityList>().Commit(world);
+            bulletSpawner.Commit(world);
         }
     }
 }

@@ -49,8 +49,8 @@
             this.glControl.ContextCreated += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GlControl1_ContextCreated);
             this.glControl.Render += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GlControl_Render);
             this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GlControl_KeyDown);
-            this.glControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyUp);
-            this.glControl.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.glControl_PreviewKeyDown);
+            this.glControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.GlControl_KeyUp);
+            this.glControl.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.GlControl_PreviewKeyDown);
             this.glControl.Resize += new System.EventHandler(this.GlControl_Resize);
             // 
             // timer
@@ -67,6 +67,7 @@
             this.Controls.Add(this.glControl);
             this.KeyPreview = true;
             this.Name = "GameForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "GameForm";
             this.Load += new System.EventHandler(this.GameForm_Load);
             this.ResumeLayout(false);

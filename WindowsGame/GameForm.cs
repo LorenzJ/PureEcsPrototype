@@ -54,8 +54,6 @@ namespace WindowsGame
         {
             previousTime = DateTime.Now;
             timer.Start();
-            debugInfoForm = new DebugInfoForm();
-            debugInfoForm.Show();
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -72,7 +70,7 @@ namespace WindowsGame
                 game.Update((float)timeStep);
             }
             debugInfo.DeltaTime = (float)deltaTime;
-            debugInfoForm.UpdateValues(debugInfo);
+            debugInfoForm?.UpdateValues(debugInfo);
             glControl.Invalidate();
         }
 
@@ -89,15 +87,23 @@ namespace WindowsGame
 
         private void GlControl_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.F2)
+            {
+                if (debugInfoForm == null || debugInfoForm.IsDisposed)
+                {
+                    debugInfoForm = new DebugInfoForm();
+                }
+                debugInfoForm.Show();
+            }
             keyBinds.HandleKeyDown(e.KeyCode);
         }
 
-        private void glControl_KeyUp(object sender, KeyEventArgs e)
+        private void GlControl_KeyUp(object sender, KeyEventArgs e)
         {
             keyBinds.HandleKeyUp(e.KeyCode);
         }
 
-        private void glControl_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        private void GlControl_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
             e.IsInputKey = true;
         }

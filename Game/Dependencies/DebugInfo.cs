@@ -1,4 +1,5 @@
 ﻿using Game.Components;
+using Game.Components.Player;
 using TinyEcs;
 
 namespace Game.Dependencies
@@ -6,10 +7,10 @@ namespace Game.Dependencies
     public class DebugInfo
     {
         public float DeltaTime { get; set; }
-        public int BulletCount { get; set; }
+        public int BulletCount { get; internal set; }
         public int PlayerCount { get; internal set; }
         public int ShipCount { get; internal set; }
-        public int EnemyCount { get; set; }
+        public int EnemyCount { get; internal set; }
     }
 
     public class DebugInfoSystem : ComponentSystem<UpdateMessage>
