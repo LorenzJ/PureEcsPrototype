@@ -63,7 +63,7 @@ namespace TinyEcs
                 fieldCount += tags.Length;
                 if (fieldCount != fields.Length)
                 {
-                    throw new UnknownFieldsException($"{fields.Length - fieldCount} uknown fields in group");
+                    throw new UnknownFieldsException($"{fields.Length - fieldCount} unknown fields in group");
                 }
             }
         }
