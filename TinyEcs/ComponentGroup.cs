@@ -12,17 +12,19 @@ namespace TinyEcs
         private Type[] componentTypes;
         private Type[] tagTypes;
         private int count;
-        internal Type[] types;
+        internal Type[] includes;
+        internal Type[] excludes;
 
         public int Count => count;
 
-        internal ComponentGroup(ArchetypeGroup[] archetypeGroups, Type[] types)
+        internal ComponentGroup(ArchetypeGroup[] archetypeGroups, Type[] includes, Type[] excludes)
         {
-            this.types = types;
+            this.includes = includes;
+            this.excludes = excludes;
             entities = new Array2<Entity>(64);
             this.archetypeGroups = archetypeGroups;
-            componentTypes = types.Where(t => t.GetInterfaces().Contains(typeof(IComponent))).ToArray();
-            tagTypes = types.Where(t => t.GetInterfaces().Contains(typeof(ITag))).ToArray();
+            componentTypes = includes.Where(t => t.GetInterfaces().Contains(typeof(IComponent))).ToArray();
+            tagTypes = includes.Where(t => t.GetInterfaces().Contains(typeof(ITag))).ToArray();
             componentsMap = new Dictionary<Type, Array2>();
             foreach (var componentType in componentTypes)
             {

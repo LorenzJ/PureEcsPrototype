@@ -17,6 +17,7 @@
             <code language="c#">
               <![CDATA[
               // A message is a struct implementing the IMessage interface
+              // Systems respond to specific messages
               struct UpdateMessage : IMessage
               {
                 private float deltaTime;
@@ -35,6 +36,7 @@
             <code language="c#">
               <![CDATA[
               // A component is a mutable struct implementing the IComponent interface
+              // Components are data containers for your entities
               struct Position : IComponent
               {
                 public float x, y;
@@ -47,16 +49,18 @@
             <para>Create a system.</para>
             <code language="c#">
               <![CDATA[
-              // Create a system that executes on the UpdateMessage message.
+              // Create a system that executes on the UpdateMessage message
+              // Systems will listen for and respond to a message of a specific type
+              // Use systems to add logic for your entities and components
               class MoveRightSystem : ComponentSystem<UpdateMessage>
               {
                 // A class to store the necessary component data
                 public class Data
                 {
                   public int length; // This will store the amount of entities in this group
-                  public RwDataStream<Position> positions; // A stream of position components that allows for both reading and writing.
+                  public RwDataStream<Position> positions; // A stream of position components that allows for both reading and writing
                 }
-                [Group] public Data data; // This field will be used to inject the component data into.
+                [Group] public Data data; // This field will be used to inject the component data into
                 
                 protected override void Execute(World world, UpdateMessage message)
                 {
@@ -88,12 +92,18 @@
           </content>
         </step>
       </steps>
+      <conclusion>
+        <content>
+          <para>The positions of all entities will be updated by moving to the right.</para>
+        </content>
+      </conclusion>
     </procedure>
 
     <relatedTopics>
       <codeEntityReference>T:TinyEcs.World</codeEntityReference>
       <codeEntityReference>T:TinyEcs.IMessage</codeEntityReference>
       <codeEntityReference>T:TinyEcs.IComponent</codeEntityReference>
+      <codeEntityReference>T:TinyEcs.GroupAttribute</codeEntityReference>
       <codeEntityReference>T:TinyEcs.Entity</codeEntityReference>
       <codeEntityReference>T:TinyEcs.ComponentSystem`1</codeEntityReference>
     </relatedTopics>

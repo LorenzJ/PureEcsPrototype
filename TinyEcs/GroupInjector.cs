@@ -30,7 +30,8 @@ namespace TinyEcs
         private FieldInfo entitiesField;
         private Injector[] readInjectors;
         private Injector[] writeInjectors;
-        private Type[] tags;
+        private Type[] includeTags;
+        private Type[] excludeTags;
 
         internal GroupInjector(World world, object targetObject)
         {
@@ -45,13 +46,15 @@ namespace TinyEcs
            
             readInjectors = CreateReadInjectors(fields);
             writeInjectors = CreateWriteInjectors(fields);
-            tags = FindTags(fields);
+            includeTags = FindIncludeTags(fields);
+            excludeTags = FindExcludeTags(fields);
 
-            var types =
+            var includes =
                 readInjectors.Select(ri => ri.type)
                 .Union(writeInjectors.Select(wi => wi.type))
-                .Union(tags).ToArray();
-            componentGroup = world.CreateComponentGroup(types);
+                .Union(includeTags).ToArray();
+
+            componentGroup = world.CreateComponentGroup(includes, excludeTags);
 
             // Check if all fields were handled, otherwise throw an exception.
             {
@@ -60,7 +63,8 @@ namespace TinyEcs
                 if (entitiesField != null) fieldCount++;
                 fieldCount += readInjectors.Length;
                 fieldCount += writeInjectors.Length;
-                fieldCount += tags.Length;
+                fieldCount += includeTags.Length;
+                fieldCount += excludeTags.Length;
                 if (fieldCount != fields.Length)
                 {
                     throw new UnknownFieldsException($"{fields.Length - fieldCount} unknown fields in group");
@@ -144,10 +148,17 @@ namespace TinyEcs
             return injectors;
         }
 
-        internal Type[] FindTags(FieldInfo[] fields)
+        internal Type[] FindIncludeTags(FieldInfo[] fields)
             => fields
-                .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag)))
+                .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag))
+                    && fi.GetCustomAttribute(typeof(ExcludeAttribute)) == null)
                 .Select(fi => fi.FieldType).ToArray();
-         
+
+        internal Type[] FindExcludeTags(FieldInfo[] fields)
+            => fields
+                .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag))
+                    && fi.GetCustomAttribute(typeof(ExcludeAttribute)) != null)
+                .Select(fi => fi.FieldType).ToArray();
+
     }
 }

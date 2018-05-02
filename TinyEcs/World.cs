@@ -193,7 +193,7 @@ namespace TinyEcs
             // Update component groups
             foreach (var componentGroup in componentGroups)
             {
-                componentGroup.archetypeGroups = GetArchetypeGroups(componentGroup.types);
+                componentGroup.archetypeGroups = GetArchetypeGroups(componentGroup.includes, componentGroup.excludes).ToArray();
             }
             return archetype;
         }
@@ -298,35 +298,47 @@ namespace TinyEcs
         /// <summary>
         /// Create a new component group.
         /// </summary>
-        /// <param name="types">Component types included in the group.</param>
+        /// <param name="includes">Component types included in the group.</param>
         /// <returns>A component group with components specified by types.</returns>
-        internal ComponentGroup CreateComponentGroup(params Type[] types)
+        internal ComponentGroup CreateComponentGroup(params Type[] includes)
         {
-            // Find the archetype groups that contain all the required types
-            var archetypeGroups = GetArchetypeGroups(types);
-            // Create a new component group based on the selected archetype groups
-            var componentGroup = new ComponentGroup(archetypeGroups, types);
-            // Fill the group with the component data of all the archetype groups
+            return CreateComponentGroup(includes, new Type[] { });
+        }
+
+        internal ComponentGroup CreateComponentGroup(Type[] includes, Type[] excludes)
+        {
+            var archetypeGroups = GetArchetypeGroups(includes, excludes).ToArray();
+            var componentGroup = new ComponentGroup(archetypeGroups, includes, excludes);
             componentGroup.UpdateStream();
             componentGroups.Add(componentGroup);
             return componentGroup;
         }
 
-        private ArchetypeGroup[] GetArchetypeGroups(Type[] types)
+
+        private IEnumerable<ArchetypeGroup> GetArchetypeGroups(Type[] includes, Type[] excludes)
         {
-            var archetypeGroups = new List<ArchetypeGroup>();
+            var includedGroups = new List<ArchetypeGroup>();
             for (var i = 0; i < nextArchetypeId; i++)
             {
-                var types_ = archetypeMap.Get(i);
                 // Check if all the required types can be found in the archetype group
-                if (types.All(t => types_.Contains(t)))
+                if (includes.All(t => archetypeMap.Get(i).Contains(t)))
                 {
                     // If so, add it to the list
-                    archetypeGroups.Add(archetypeGroupMap.Get(i));
+                    includedGroups.Add(archetypeGroupMap.Get(i));
                 }
             }
-            return archetypeGroups.ToArray();
+            var excludedGroups = new List<ArchetypeGroup>();
+            for (var i = 0; i < nextArchetypeId; i++)
+            {
+                if (excludes.Any(t => archetypeMap.Get(i).Contains(t)))
+                {
+                    excludedGroups.Add(archetypeGroupMap.Get(i));
+                }
+            }
+            return includedGroups.Except(excludedGroups);
         }
+
+
 
         /// <summary>
         /// Get the archetype of an entity.
