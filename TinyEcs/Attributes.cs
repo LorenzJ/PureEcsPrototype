@@ -10,7 +10,7 @@ namespace TinyEcs
     {
     }
     /// <summary>
-    /// Exclude entities that are marked by a tag. (Not yet implemented)
+    /// Exclude entities that are marked by a tag.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     public sealed class ExcludeAttribute : Attribute

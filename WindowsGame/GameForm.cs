@@ -3,6 +3,8 @@ using Game.Dependencies;
 using GameGl;
 using OpenGL;
 using System;
+using System.Globalization;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace WindowsGame
@@ -17,6 +19,8 @@ namespace WindowsGame
         private Renderer renderer;
         private DebugInfo debugInfo;
         private DebugInfoForm debugInfoForm;
+        private KeyBinds keyBinds;
+        private Vertex2f[] directions = new Vertex2f[8];
 
         public GameForm()
         {
@@ -28,10 +32,22 @@ namespace WindowsGame
             Focus();
             game = new Game.Game();
             renderer = game.World.GetDependency<Renderer>();
-            debugInfo = game.World.GetDependency<DebugInfo>(); 
+            debugInfo = game.World.GetDependency<DebugInfo>();
+            keyBinds = GetKeyBindings();
 
             Gl.Enable(EnableCap.Blend);
             Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        }
+
+        private KeyBinds GetKeyBindings()
+        {
+            var keyBinds = new KeyBinds();
+            keyBinds.Bind(Keys.Left, 0, InputCommands.MoveLeft);
+            keyBinds.Bind(Keys.Up, 0, InputCommands.MoveUp);
+            keyBinds.Bind(Keys.Right, 0, InputCommands.MoveRight);
+            keyBinds.Bind(Keys.Down, 0, InputCommands.MoveDown);
+            keyBinds.Bind(Keys.Z, 0, InputCommands.Fire);
+            return keyBinds;
         }
 
         private void GameForm_Load(object sender, EventArgs e)
@@ -48,6 +64,8 @@ namespace WindowsGame
             var deltaTime = (currentTime - previousTime).TotalSeconds;
             previousTime = currentTime;
             accumulatedTime += deltaTime;
+            var inputCommands = keyBinds.InputCommands;
+            game.World.Post(new InputMessage(inputCommands, directions));
             while (accumulatedTime > 0)
             {
                 accumulatedTime -= timeStep;
@@ -71,17 +89,17 @@ namespace WindowsGame
 
         private void GlControl_KeyDown(object sender, KeyEventArgs e)
         {
-            HandleKeyEvent(e, true);
-        }
-
-        private void HandleKeyEvent(KeyEventArgs e, bool keyDown)
-        {
-            
+            keyBinds.HandleKeyDown(e.KeyCode);
         }
 
         private void glControl_KeyUp(object sender, KeyEventArgs e)
         {
-            HandleKeyEvent(e, false);
+            keyBinds.HandleKeyUp(e.KeyCode);
+        }
+
+        private void glControl_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            e.IsInputKey = true;
         }
     }
 }

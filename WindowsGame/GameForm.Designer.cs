@@ -43,13 +43,14 @@
             this.glControl.Location = new System.Drawing.Point(0, 0);
             this.glControl.MultisampleBits = ((uint)(0u));
             this.glControl.Name = "glControl";
-            this.glControl.Size = new System.Drawing.Size(800, 450);
+            this.glControl.Size = new System.Drawing.Size(623, 449);
             this.glControl.StencilBits = ((uint)(0u));
             this.glControl.TabIndex = 0;
             this.glControl.ContextCreated += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GlControl1_ContextCreated);
             this.glControl.Render += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GlControl_Render);
             this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GlControl_KeyDown);
             this.glControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyUp);
+            this.glControl.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.glControl_PreviewKeyDown);
             this.glControl.Resize += new System.EventHandler(this.GlControl_Resize);
             // 
             // timer
@@ -61,8 +62,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.CausesValidation = false;
+            this.ClientSize = new System.Drawing.Size(623, 449);
             this.Controls.Add(this.glControl);
+            this.KeyPreview = true;
             this.Name = "GameForm";
             this.Text = "GameForm";
             this.Load += new System.EventHandler(this.GameForm_Load);

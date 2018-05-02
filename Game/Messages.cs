@@ -1,4 +1,5 @@
-﻿using TinyEcs;
+﻿using OpenGL;
+using TinyEcs;
 
 namespace Game
 {
@@ -26,18 +27,17 @@ namespace Game
 
     public struct DetectCollisionsMessage : IMessage { }
 
-    enum InputCommand
+    public struct InputMessage : IMessage
     {
-        Fire
-    }
-    struct InputCommandMessage : IMessage
-    {
-        public InputCommand Command { get; private set; }
+        public InputCommands[] inputCommands;
+        public Vertex2f[] directions;
 
-        public InputCommandMessage(InputCommand command)
+        public InputMessage(InputCommands[] inputCommands, Vertex2f[] directions)
         {
-            Command = command;
+            this.inputCommands = inputCommands;
+            this.directions = directions;
         }
     }
+
 
 }

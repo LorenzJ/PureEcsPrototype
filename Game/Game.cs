@@ -1,5 +1,6 @@
 ﻿using Game.Components;
 using Game.Components.Colliders;
+using Game.Components.Player;
 using Game.Components.Transform;
 using Game.Components.Utilities;
 using Game.Dependencies;
@@ -20,7 +21,7 @@ namespace Game
         {
             world = World.Create();
             var shipType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(ShipTag), typeof(Circle));
-            var playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag));
+            var playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag), typeof(PlayerInfo), typeof(Input));
             var enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag));
 
             var bulletType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(BulletTag), typeof(Circle), typeof(Ttl));
@@ -28,6 +29,7 @@ namespace Game
             var enemyBulletType = world.CreateArchetype(bulletType, typeof(EnemyTag));
 
             var player = world.CreateEntity(playerShipType);
+            world.Ref<PlayerInfo>(player).speed = 0.5f;
         }
 
         public void Update(float deltaTime)

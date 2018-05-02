@@ -74,6 +74,7 @@
     <Compile Include="GameForm.Designer.cs">
       <DependentUpon>GameForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="KeyBinds.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="DebugInfoForm.resx">
