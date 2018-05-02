@@ -1,13 +1,14 @@
 ﻿using OpenGL;
+using System.Numerics;
 using TinyEcs;
 
 namespace Game.Components.Transform
 {
     public struct Rotation : IComponent
     {
-        public Vertex2f vector;
+        public Vector2 vector;
 
-        public Rotation(Vertex2f vector)
+        public Rotation(Vector2 vector)
         {
             this.vector = vector;
         }

@@ -1,11 +1,12 @@
 ﻿using OpenGL;
+using System.Numerics;
 using TinyEcs;
 
 namespace Game.Components.Player
 {
     public struct Input : IComponent
     {
-        public Vertex2f direction;
+        public Vector2 direction;
         public InputCommands commands;
     }
 }

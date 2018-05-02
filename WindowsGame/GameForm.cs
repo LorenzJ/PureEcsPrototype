@@ -3,8 +3,7 @@ using Game.Dependencies;
 using GameGl;
 using OpenGL;
 using System;
-using System.Globalization;
-using System.Threading;
+using System.Numerics;
 using System.Windows.Forms;
 
 namespace WindowsGame
@@ -20,7 +19,7 @@ namespace WindowsGame
         private DebugInfo debugInfo;
         private DebugInfoForm debugInfoForm;
         private KeyBinds keyBinds;
-        private Vertex2f[] directions = new Vertex2f[8];
+        private Vector2[] directions = new Vector2[8];
 
         public GameForm()
         {

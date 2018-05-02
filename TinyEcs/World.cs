@@ -167,6 +167,7 @@ namespace TinyEcs
         /// </summary>
         /// <typeparam name="T">Type of resource.</typeparam>
         /// <returns>Resource of type T</returns>
+        /// <exception cref="KeyNotFoundException">Thrown when the requested resource was not injected.</exception>
         public T GetDependency<T>() where T : class => dependencyMap[typeof(T)] as T;
 
         /// <summary>

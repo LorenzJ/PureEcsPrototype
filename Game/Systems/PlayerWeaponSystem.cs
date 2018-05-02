@@ -3,6 +3,7 @@ using Game.Components.Transform;
 using Game.Dependencies;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using TinyEcs;
 
@@ -39,7 +40,7 @@ namespace Game.Systems
                 {
                     bulletSpawner.Spawn(
                         new BulletSpawner.BulletCommand(data.positions[i], 
-                        new Heading(new OpenGL.Vertex2f(0, 1)), 
+                        new Heading(new Vector2(0, 1)), 
                         BulletSpawner.BulletType.Player));
                     data.infos[i].fireTimeout = 0.2f;
                 }

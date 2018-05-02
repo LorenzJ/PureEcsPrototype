@@ -50,7 +50,7 @@ namespace Game.Systems
                     var v = (positions2[j].vector + colliders2[j].offset) - (positions1[i].vector + colliders1[i].offset);
                     var r = colliders1[i].radius + colliders2[j].radius;
                     var rSquared = r * r;
-                    if (v.ModuleSquared() < rSquared)
+                    if (v.LengthSquared() < rSquared)
                     {
                         pairs.Add((entities1[i], entities2[j]));
                     }

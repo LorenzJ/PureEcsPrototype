@@ -1,4 +1,5 @@
 ﻿using OpenGL;
+using System.Numerics;
 using TinyEcs;
 
 namespace Game
@@ -30,9 +31,9 @@ namespace Game
     public struct InputMessage : IMessage
     {
         public InputCommands[] inputCommands;
-        public Vertex2f[] directions;
+        public Vector2[] directions;
 
-        public InputMessage(InputCommands[] inputCommands, Vertex2f[] directions)
+        public InputMessage(InputCommands[] inputCommands, Vector2[] directions)
         {
             this.inputCommands = inputCommands;
             this.directions = directions;

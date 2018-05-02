@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TinyEcs
+﻿namespace TinyEcs
 {
     /// <summary>
     /// Allows a dependency to have a <c>OnLoad</c> method that gets called after a <see cref="World"/> has been constructed 

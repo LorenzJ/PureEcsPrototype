@@ -1,5 +1,6 @@
 ﻿using Game.Components.Player;
 using Game.Components.Transform;
+using System.Numerics;
 using TinyEcs;
 
 namespace Game.Systems
@@ -28,25 +29,32 @@ namespace Game.Systems
             {
                 if ((data.inputs[i].commands & InputCommands.MoveRight) > 0)
                 {
-                    data.inputs[i].direction.x += 1;
+                    data.inputs[i].direction.X += 1;
                 }
                 if ((data.inputs[i].commands & InputCommands.MoveLeft) > 0)
                 {
-                    data.inputs[i].direction.x -= 1;
+                    data.inputs[i].direction.X -= 1;
                 }
                 if ((data.inputs[i].commands & InputCommands.MoveUp) > 0)
                 {
-                    data.inputs[i].direction.y += 1;
+                    data.inputs[i].direction.Y += 1;
                 }
                 if ((data.inputs[i].commands & InputCommands.MoveDown) > 0)
                 {
-                    data.inputs[i].direction.y -= 1;
+                    data.inputs[i].direction.Y -= 1;
                 }
             }
 
             for (var i = 0; i < data.length; i++)
             {
-                data.headings[i].vector = data.inputs[i].direction.Normalized * data.playerInfos[i].speed;
+                if (data.inputs[i].direction.LengthSquared() > 0)
+                {
+                    data.headings[i].vector = Vector2.Normalize(data.inputs[i].direction) * data.playerInfos[i].speed;
+                }
+                else
+                {
+                    data.headings[i].vector = default;
+                }
             }
         }
     }
