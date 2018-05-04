@@ -28,9 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.glControl = new OpenGL.GlControl();
-            this.timer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // glControl
@@ -53,11 +51,6 @@
             this.glControl.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.GlControl_PreviewKeyDown);
             this.glControl.Resize += new System.EventHandler(this.GlControl_Resize);
             // 
-            // timer
-            // 
-            this.timer.Interval = 1;
-            this.timer.Tick += new System.EventHandler(this.Timer_Tick);
-            // 
             // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -77,6 +70,5 @@
         #endregion
 
         private OpenGL.GlControl glControl;
-        private System.Windows.Forms.Timer timer;
     }
 }

@@ -34,7 +34,7 @@ namespace GameGl
             program.Use();
             timeUniform.Set(time);
             ivbo.Bind();
-            ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * length, (Position[])positions);
+            ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * length, positions);
             ivbo.Unbind();
             vao.Bind();
             Gl.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, length);
@@ -46,7 +46,7 @@ namespace GameGl
             var program = CreateProgram();
             var timeUniform = program.GetFloatUniform("uTime");
             var vbo = Quad.VertexBuffer;
-            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4096, BufferUsage.DynamicDraw);
+            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4000, BufferUsage.DynamicDraw);
             var vao = CreateVertexArray();
             return new BulletBatch(vao, ivbo, program, timeUniform);
 

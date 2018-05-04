@@ -4,6 +4,7 @@ using GameGl;
 using OpenGL;
 using System;
 using System.Numerics;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace WindowsGame
@@ -38,6 +39,22 @@ namespace WindowsGame
             Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
+        private void DoLogicUpdate()
+        {
+            currentTime = DateTime.Now;
+            var deltaTime = (currentTime - previousTime).TotalSeconds;
+            previousTime = currentTime;
+            accumulatedTime += deltaTime;
+            var inputCommands = keyBinds.InputCommands;
+            game.World.Post(new InputMessage(inputCommands, directions));
+            while (accumulatedTime > 0)
+            {
+                accumulatedTime -= timeStep;
+                game.Update((float)timeStep);
+            }
+            debugInfo.DeltaTime = (float)deltaTime;
+        }
+
         private KeyBinds GetKeyBindings()
         {
             var keyBinds = new KeyBinds();
@@ -52,31 +69,16 @@ namespace WindowsGame
         private void GameForm_Load(object sender, EventArgs e)
         {
             previousTime = DateTime.Now;
-            timer.Start();
-        }
-
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            currentTime = DateTime.Now;
-            var deltaTime = (currentTime - previousTime).TotalSeconds;
-            previousTime = currentTime;
-            accumulatedTime += deltaTime;
-            var inputCommands = keyBinds.InputCommands;
-            game.World.Post(new InputMessage(inputCommands, directions));
-            while (accumulatedTime > 0)
-            {
-                accumulatedTime -= timeStep;
-                game.Update((float)timeStep);
-            }
-            debugInfo.DeltaTime = (float)deltaTime;
-            debugInfoForm?.UpdateValues(debugInfo);
-            glControl.Invalidate();
+            //timer.Start();
         }
 
         private void GlControl_Render(object sender, GlControlEventArgs e)
         {
+            DoLogicUpdate();
+            debugInfoForm?.UpdateValues(debugInfo);
             Gl.Clear(ClearBufferMask.ColorBufferBit);
             renderer.Render(game.Time);
+            glControl.Invalidate();
         }
 
         private void GlControl_Resize(object sender, EventArgs e)

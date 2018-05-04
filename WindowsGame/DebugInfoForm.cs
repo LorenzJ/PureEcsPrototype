@@ -28,6 +28,7 @@ namespace WindowsGame
             if (InvokeRequired)
             {
                 Invoke(UpdateValuesDelegate, debugInfo);
+                return;
             }
             deltaTimes[index++] = debugInfo.DeltaTime;
             index &= 0xF;

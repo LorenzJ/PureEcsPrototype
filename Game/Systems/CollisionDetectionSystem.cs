@@ -1,8 +1,11 @@
 ﻿using Game.Components;
 using Game.Components.Colliders;
+using Game.Components.Player;
 using Game.Components.Transform;
+using Game.Dependencies;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading.Tasks;
 using TinyEcs;
 
@@ -15,26 +18,56 @@ namespace Game.Systems
         [Group] public Players players;
         [Group] public Enemies enemies;
 
+        private DeadEntityList deadEntityList;
+        private World world;
+
+        public CollisionDetectionSystem(DeadEntityList deadEntityList)
+        {
+            this.deadEntityList = deadEntityList;
+        }
+
         protected override void Execute(World world, DetectCollisionsMessage message)
         {
+            this.world = world;
             var playerBulletsToEnemies = Task.Run(() => 
                 GetCollisionPairs(
                     playerBullets.Positions, playerBullets.Colliders, playerBullets.Entities, playerBullets.Length,
                     enemies.Positions, enemies.Colliders, enemies.Entities, enemies.Length))
-                .ContinueWith(HandleCollisions);
+                .ContinueWith(HandleCollisionsWithEnemies);
 
             var enemyBulletsToPlayers = Task.Run(() =>
                 GetCollisionPairs(
                     enemyBullets.Positions, enemyBullets.Colliders, enemyBullets.Entities, enemyBullets.Length,
                     players.Positions, players.Colliders, players.Entities, players.Length))
-                .ContinueWith(HandleCollisions);
+                .ContinueWith(HandleCollisionsWithPlayers);
             
             Task.WaitAll(playerBulletsToEnemies, enemyBulletsToPlayers);
         }
 
-        private void HandleCollisions(Task<List<(Entity, Entity)>> pairs)
+        private void HandleCollisionsWithEnemies(Task<List<(Entity, Entity)>> pairs)
         {
-            throw new NotImplementedException();
+            var list = new List<Entity>(pairs.Result.Count * 2);
+            foreach (var (bullet, enemy) in pairs.Result)
+            {
+                list.Add(bullet);
+                world.Ref<Health>(enemy).Value -= world.Ref<DamageSource>(bullet).Value;
+                if (world.Ref<Health>(enemy).Value <= 0)
+                {
+                    list.Add(enemy);
+                }
+            }
+            deadEntityList.AddRange(list);
+        }
+
+        private void HandleCollisionsWithPlayers(Task<List<(Entity, Entity)>> pairs)
+        {
+            var list = new List<Entity>(pairs.Result.Count * 2);
+            foreach (var (bullet, player) in pairs.Result)
+            {
+                list.Add(bullet);
+                world.Ref<PlayerInfo>(player).Lives -= 1;
+                world.Ref<Position>(player).Vector = new Vector2();
+            }
         }
 
         private List<(Entity, Entity)> 

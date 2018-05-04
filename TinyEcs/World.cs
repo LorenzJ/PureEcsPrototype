@@ -275,7 +275,7 @@ namespace TinyEcs
         /// <summary>
         /// Destroy an existing entity.
         /// </summary>
-        /// <param name="entity">Entity to destroy</param>
+        /// <param name="entity"><see cref="Entity"/> to destroy</param>
         public void DestroyEntity(Entity entity)
         {
             // Get the archetype group that the entity belongs to
@@ -284,6 +284,16 @@ namespace TinyEcs
             archetypeGroup.Remove(entity, ref entityIndexMap);
             // Ensure that the id can be reused
             openEntityIds.Enqueue(entity.handle);
+        }
+
+        /// <summary>
+        /// Destroy all entities adhering to an archetype.
+        /// </summary>
+        /// <param name="archetype">The <see cref="Entity"/> of the entities to remove</param>
+        public void DestroyAll(Archetype archetype)
+        {
+            var archetypeGroup = archetypeGroupMap[archetype];
+            archetypeGroup.Clear();
         }
 
         /// <summary>

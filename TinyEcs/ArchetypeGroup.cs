@@ -106,5 +106,10 @@ namespace TinyEcs
             Array.Copy(array, newArray, Math.Min(array.Length, newArray.Length));
             array = newArray;
         }
+
+        internal void Clear()
+        {
+            count = 0;
+        }
     }
 }

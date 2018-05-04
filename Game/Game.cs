@@ -12,7 +12,6 @@ namespace Game
     public class Game
     {
         private World world;
-        private BulletSpawner bulletSpawner;
         private float time;
 
         public World World { get => world; }
@@ -21,13 +20,12 @@ namespace Game
         public Game()
         {
             world = World.Create();
-            bulletSpawner = world.GetDependency<BulletSpawner>();
-            var shipType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(ShipTag), typeof(Circle));
+            var shipType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(ShipTag), typeof(Circle), typeof(WeaponState));
             var playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag), typeof(PlayerInfo), typeof(Input));
             var enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag));
 
-            var bulletType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(BulletTag), typeof(Circle), typeof(Ttl));
-            var playerBulletType = world.CreateArchetype(bulletType, typeof(PlayerTag));
+            var bulletType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(BulletTag), typeof(Circle), typeof(Ttl), typeof(ParticleTag));
+            var playerBulletType = world.CreateArchetype(bulletType, typeof(PlayerTag), typeof(DamageSource));
             var enemyBulletType = world.CreateArchetype(bulletType, typeof(EnemyTag));
 
             var player = world.CreateEntity(playerShipType);
@@ -41,7 +39,7 @@ namespace Game
             world.Post(new LateUpdateMessage(deltaTime));
             world.Post(new RenderMessage());
             world.GetDependency<DeadEntityList>().Commit(world);
-            bulletSpawner.Commit(world);
+            world.GetDependency<BulletSpawner>().Commit(world);
         }
     }
 }

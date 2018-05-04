@@ -1,4 +1,5 @@
-﻿using Game.Components.Player;
+﻿using Game.Components;
+using Game.Components.Player;
 using Game.Components.Transform;
 using Game.Dependencies;
 using System;
@@ -18,7 +19,7 @@ namespace Game.Systems
             public int Length;
             public RoDataStream<Input> Inputs;
             public RoDataStream<Position> Positions;
-            public RwDataStream<PlayerInfo> Infos;
+            public RwDataStream<WeaponState> Weapons;
         }
         [Group] public Data data;
 
@@ -31,18 +32,18 @@ namespace Game.Systems
         {
             for (var i = 0; i < data.Length; i++)
             {
-                data.Infos[i].FireTimeout -= message.DeltaTime;
+                data.Weapons[i].Timeout -= message.DeltaTime;
             }
 
             for (var i = 0; i < data.Length; i++)
             {
-                if ((data.Inputs[i].Commands & InputCommands.Fire) > 0 && data.Infos[i].FireTimeout <= 0)
+                if ((data.Inputs[i].Commands & InputCommands.Fire) > 0 && data.Weapons[i].Timeout <= 0)
                 {
                     bulletSpawner.Spawn(
                         new BulletSpawner.BulletCommand(data.Positions[i], 
                         new Heading(new Vector2(0, 1)), 
                         BulletSpawner.BulletType.Player));
-                    data.Infos[i].FireTimeout = 0.2f;
+                    data.Weapons[i].Timeout = data.Weapons[i].Frequency;
                 }
             }
         }
