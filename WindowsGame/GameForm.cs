@@ -15,7 +15,7 @@ namespace WindowsGame
         private DateTime previousTime;
         private DateTime currentTime;
         private double accumulatedTime;
-        private double timeStep = 1 / 60.0;
+        private double timeStep = 1 / 120.0;
         private Renderer renderer;
         private DebugInfo debugInfo;
         private DebugInfoForm debugInfoForm;
@@ -37,6 +37,7 @@ namespace WindowsGame
 
             Gl.Enable(EnableCap.Blend);
             Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            Gl.Enable(EnableCap.DepthTest);
         }
 
         private void DoLogicUpdate()
@@ -76,7 +77,7 @@ namespace WindowsGame
         {
             DoLogicUpdate();
             debugInfoForm?.UpdateValues(debugInfo);
-            Gl.Clear(ClearBufferMask.ColorBufferBit);
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             renderer.Render(game.Time);
             glControl.Invalidate();
         }

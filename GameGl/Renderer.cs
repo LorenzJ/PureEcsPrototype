@@ -18,7 +18,7 @@ namespace GameGl
         public void Render(float time)
         {
             background.Draw(time);
-            playerBatch.Draw(playerPositions, playerCount);
+            playerBatch.Draw(playerPositions, playerCount, time);
             bulletBatch.Draw(playerBulletPositions, playerBulletCount, time);
         }
 

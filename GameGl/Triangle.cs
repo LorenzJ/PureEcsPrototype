@@ -11,9 +11,9 @@ namespace GameGl
         {
             float[] vertices =
             {
-                .0f, .5f,
-                -.5f, -.5f,
-                .5f, -.5f
+                .0f, 1f,
+                -1f, -1f,
+                1f, -1f
             };
             instance = new Triangle
             {

@@ -73,8 +73,8 @@ namespace GameGl.Properties {
         ///{
         ///    vec2 uv = Position;
         ///	uv *= .5;
-        ///	uv.x *= 2.8;
-        ///    uv.y += uTime * 0.2;
+        ///	uv.x *= 8.0;
+        ///    uv.y -= uTime * 0.2;
         ///    uv.x = mod(sin(uv.y), cos(uv.x));
         ///    uv.y = mod(-sin(uv.x), -cos(uv.y));
         ///    float mask1 = smoothstep(-0.50, -0.495, uv.x - uv.y * 0.2);
@@ -92,13 +92,16 @@ namespace GameGl.Properties {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
+        ///uniform mat4 uViewProjection;
+        ///
         ///layout (location = 0) in vec2 aPosition;
         ///
         ///out vec2 Position;
         ///
         ///void main() {
-        ///	gl_Position = vec4(aPosition * 2., 0., 1.);
-        ///	Position = aPosition;
+        ///	
+        ///	gl_Position = uViewProjection * vec4(aPosition, 0., 1.);
+        ///	Position = aPosition *2.;
         ///}.
         /// </summary>
         internal static string BackgroundVertex {
@@ -121,18 +124,18 @@ namespace GameGl.Properties {
         ///	float t = uTime * 2.0;
         ///    vec2 uv = Position;
         ///
-        ///    float circle = smoothstep(0.50, 0.49, length(uv));
+        ///    float circle = smoothstep(1, 0.99, length(uv));
         ///	float alpha = circle;
-        ///	circle -= smoothstep(0.45, 0.44, length(uv));
-        ///    circle += smoothstep(0.4, 0.39, length(uv));
+        ///	circle -= smoothstep(0.9, 0.89, length(uv));
+        ///    circle += smoothstep(0.8, 0.79, length(uv));
         ///    
         ///    vec2 orig = uv;
-        ///    uv.x += cos(t) * 0.2;
-        ///    uv.y += sin(t) * 0.2;
-        ///    circle -= smoothstep(0.1, 0.09, length(uv));
+        ///    uv.x += cos(t) * 0.4;
+        ///    uv.y += sin(t) * 0.4;
+        ///    circle -= smoothstep(0.2, 0.19, length(uv));
         ///    uv = orig;
-        ///    uv.x -= cos(t) * 0.2;
-        ///    [rest of string was truncated]&quot;;.
+        ///    uv.x -= cos(t) * 0.4;
+        ///    uv. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string BulletFrag {
             get {
@@ -143,6 +146,8 @@ namespace GameGl.Properties {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
+        ///uniform float uScale;
+        ///
         ///layout(location = 0) in vec2 aPosition;
         ///layout(location = 1) in vec2 aOffset;
         ///
@@ -150,7 +155,7 @@ namespace GameGl.Properties {
         ///
         ///void main()
         ///{
-        ///	gl_Position = vec4(aPosition * 0.1 + aOffset, 0, 1);
+        ///	gl_Position = vec4(aPosition * uScale + aOffset, -1, 1);
         ///	Position = aPosition;
         ///}.
         /// </summary>
@@ -163,15 +168,22 @@ namespace GameGl.Properties {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
-        ///layout (location = 0) in vec2 aPosition;
+        ///uniform float uTime;
         ///
-        ///void main() {
-        ///	gl_Position = vec4(aPosition, 0., 1.);
+        ///in vec2 Position;
+        ///out vec4 FragColor;
+        ///
+        ///void main()
+        ///{
+        ///	vec2 uv = Position;
+        ///	float r = mod(uv.y + uTime, 0.2) * .5 + mod(uv.x / sin(uv.x * uTime) + uTime, 2.) * .5;
+        ///    float g = smoothstep(0.1, 0.09, length(uv));
+        ///	FragColor = vec4(r, g, 0, 1);
         ///}.
         /// </summary>
-        internal static string SimpleVertex {
+        internal static string ShipFrag {
             get {
-                return ResourceManager.GetString("SimpleVertex", resourceCulture);
+                return ResourceManager.GetString("ShipFrag", resourceCulture);
             }
         }
     }

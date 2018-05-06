@@ -33,7 +33,8 @@ namespace WindowsGame
             deltaTimes[index++] = debugInfo.DeltaTime;
             index &= 0xF;
             var averageDeltaTime = deltaTimes.Aggregate((f1, f2) => f1 + f2) / 16;
-            framerateLabel.Text = $"{1.0 / debugInfo.DeltaTime:0.##} fps (average: {1.0 / averageDeltaTime:0.##} fps)";
+            framerateLabel.Text = $"{1.0 / debugInfo.DeltaTime:000.00}fps (average: {1.0 / averageDeltaTime:000.00}fps)";
+            frametimeLabel.Text = $"{debugInfo.DeltaTime:0.0000}s (average: {averageDeltaTime:0.0000}s)";
             bulletCountLabel.Text = debugInfo.BulletCount.ToString();
             playerCountLabel.Text = debugInfo.PlayerCount.ToString();
             enemyCountLabel.Text = debugInfo.EnemyCount.ToString();

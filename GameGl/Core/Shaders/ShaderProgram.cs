@@ -44,6 +44,7 @@ namespace GameGl.Core.Shaders
             return location;
         }
         public FloatUniform GetFloatUniform(string name) => new FloatUniform(GetUniformLocation(name));
+        public Mat4Uniform GetMat4Uniform(string name) => new Mat4Uniform(GetUniformLocation(name));
 
         public void Use() => Gl.UseProgram(handle);
         public void Dispose() => Gl.DeleteProgram(handle);

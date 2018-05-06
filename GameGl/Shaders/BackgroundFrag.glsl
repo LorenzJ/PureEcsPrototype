@@ -10,8 +10,8 @@ void main()
 {
     vec2 uv = Position;
 	uv *= .5;
-	uv.x *= 2.8;
-    uv.y += uTime * 0.2;
+	uv.x *= 8.0;
+    uv.y -= uTime * 0.2;
     uv.x = mod(sin(uv.y), cos(uv.x));
     uv.y = mod(-sin(uv.x), -cos(uv.y));
     float mask1 = smoothstep(-0.50, -0.495, uv.x - uv.y * 0.2);

@@ -20,19 +20,22 @@ namespace GameGl
         ArrayBuffer ivbo;
         ShaderProgram program;
         FloatUniform timeUniform;
+        FloatUniform scaleUniform;
 
-        private BulletBatch(VertexArray vao, ArrayBuffer ivbo, ShaderProgram program, FloatUniform timeUniform)
+        private BulletBatch(VertexArray vao, ArrayBuffer ivbo, ShaderProgram program, FloatUniform timeUniform, FloatUniform scaleUniform)
         {
             this.vao = vao;
             this.ivbo = ivbo;
             this.program = program;
             this.timeUniform = timeUniform;
+            this.scaleUniform = scaleUniform;
         }
 
         public void Draw(Position[] positions, int length, float time)
         {
             program.Use();
             timeUniform.Set(time);
+            scaleUniform.Set(.05f);
             ivbo.Bind();
             ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * length, positions);
             ivbo.Unbind();
@@ -45,10 +48,11 @@ namespace GameGl
         {
             var program = CreateProgram();
             var timeUniform = program.GetFloatUniform("uTime");
+            var scaleUniform = program.GetFloatUniform("uScale");
             var vbo = Quad.VertexBuffer;
             var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 4000, BufferUsage.DynamicDraw);
             var vao = CreateVertexArray();
-            return new BulletBatch(vao, ivbo, program, timeUniform);
+            return new BulletBatch(vao, ivbo, program, timeUniform, scaleUniform);
 
             ShaderProgram CreateProgram()
             {

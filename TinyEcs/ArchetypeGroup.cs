@@ -36,7 +36,7 @@ namespace TinyEcs
             where T : struct, IComponent 
             => ref (componentsMap[typeof(T)] as T[])[index];
 
-        internal void Add(Entity entity, ref FlatMap<Entity, int> entityIndexMap)
+        internal int Add(Entity entity, ref FlatMap<Entity, int> entityIndexMap)
         {
             // Allocate more space if needed
             if (count == entities.Length - 1)
@@ -48,7 +48,7 @@ namespace TinyEcs
             // Register the index in the world's entity index map
             entityIndexMap[entity] = count;
 
-            count++;
+            return count++;
         }
 
         private void ResizeAllArrays(int length)
@@ -110,6 +110,20 @@ namespace TinyEcs
         internal void Clear()
         {
             count = 0;
+        }
+
+        internal void Move(Entity entity, ArchetypeGroup newGroup, ref FlatMap<Entity, int> entityIndexMap)
+        {
+            int currentIndex = entityIndexMap[entity];
+            int newIndex = newGroup.Add(entity, ref entityIndexMap);
+            foreach (var type in newGroup.componentTypes)
+            {
+                if (componentsMap.ContainsKey(type))
+                {
+                    newGroup.componentsMap[type].SetValue(componentsMap[type].GetValue(currentIndex), newIndex);
+                }
+            }
+            Remove(entity, ref entityIndexMap);
         }
     }
 }

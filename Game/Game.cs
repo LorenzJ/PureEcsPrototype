@@ -4,7 +4,6 @@ using Game.Components.Player;
 using Game.Components.Transform;
 using Game.Components.Utilities;
 using Game.Dependencies;
-using System;
 using TinyEcs;
 
 namespace Game
@@ -30,6 +29,7 @@ namespace Game
 
             var player = world.CreateEntity(playerShipType);
             world.Ref<PlayerInfo>(player).Speed = 0.5f;
+            world.Ref<WeaponState>(player).Frequency = 0.2f;
         }
 
         public void Update(float deltaTime)

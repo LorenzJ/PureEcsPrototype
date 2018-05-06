@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace TinyEcs
@@ -13,10 +13,12 @@ namespace TinyEcs
     /// </summary>
     public class World
     {
+        // Todo: Move cold data to a sub class
         /// <summary>
         /// Reverse type to archetype lookup
         /// </summary>
         private Dictionary<Type[], Archetype> typeMap;
+        private FlatMap<Archetype, bool> archetypeExistanceMap;
         /// <summary>
         /// Archetype type registry
         /// </summary>
@@ -53,17 +55,26 @@ namespace TinyEcs
         /// Dictionary of dependencies
         /// </summary>
         private Dictionary<Type, object> dependencyMap;
+        private ConcurrentQueue<Action> postActions;
 
         private int nextArchetypeId;
         private int nextEntityId;
         private Queue<int> openEntityIds;
+
+        private static Archetype defaultArchetype;
+
+        static World()
+        {
+            defaultArchetype = new Archetype(0);
+        }
 
         #region Creation
         private World(IEnumerable<ISystem> systems, Dictionary<Type, object> dependencyMap)
         {
             const int reserved = 64;
 
-            typeMap = new Dictionary<Type[], Archetype>();
+            typeMap = new Dictionary<Type[], Archetype>(new TypeArrayCompararer());
+            archetypeExistanceMap = new FlatMap<Archetype, bool>(reserved);
             archetypeMap = new FlatMap<Archetype, Type[]>(reserved);
             archetypeGroupMap = new FlatMap<Archetype, ArchetypeGroup>(reserved);
             entityArchetypeMap = new FlatMap<Entity, Archetype>(reserved);
@@ -79,6 +90,11 @@ namespace TinyEcs
                 .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
 
             this.dependencyMap = dependencyMap;
+
+            postActions = new ConcurrentQueue<Action>();
+
+            nextArchetypeId = 1;
+            nextEntityId = 0;
         }
 
         /// <summary>
@@ -93,8 +109,8 @@ namespace TinyEcs
             var types = assemblies.SelectMany(asm => asm.DefinedTypes);
             // Find the ComponentSystem types
             var systemTypes = types
-                .Where(type => type.BaseType != null 
-                    && type.BaseType.IsGenericType 
+                .Where(type => type.BaseType != null
+                    && type.BaseType.IsGenericType
                     && type.BaseType.GetGenericTypeDefinition() == typeof(ComponentSystem<>));
 
             // Get the constructors
@@ -179,9 +195,24 @@ namespace TinyEcs
         {
             var systems = systemMap[message.GetType()];
             var injectors = systems.SelectMany(system => groupInjectorMap[system]);
+
             Parallel.ForEach(injectors, injector => injector.Inject());
             Parallel.ForEach(systems, system => system.Execute(this, message));
             Parallel.ForEach(injectors, injector => injector.WriteAndUnlock());
+
+            while (postActions.TryDequeue(out var action))
+            {
+                action.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Enqueue an action to be executed synchronously after handling a message 
+        /// </summary>
+        /// <param name="action">The action to be executed</param>
+        public void PostAction(Action action)
+        {
+            postActions.Enqueue(action);
         }
 
         #region Archetype creation
@@ -273,6 +304,12 @@ namespace TinyEcs
         }
 
         /// <summary>
+        /// Create an empty entity with the default archetype.
+        /// </summary>
+        /// <returns>Empty entity</returns>
+        public Entity CreateEntity() => CreateEntity(defaultArchetype);
+
+        /// <summary>
         /// Destroy an existing entity.
         /// </summary>
         /// <param name="entity"><see cref="Entity"/> to destroy</param>
@@ -313,13 +350,43 @@ namespace TinyEcs
             return ref archetypeGroup.Ref<T>(index);
         }
 
-        //public void Add<T>(Entity entity)
-        //    where T : struct, IComponent
-        //{
-        //    var archetype = entityArchetypeMap[entity];
-        //    var types = archetypeMap[archetype].Concat(new Type[] { typeof(T) });
-            
-        //}
+        /// <summary>
+        /// Add a component to an entity. Will change its archetype.
+        /// </summary>
+        /// <typeparam name="T">Type of component to add</typeparam>
+        /// <param name="entity">Target entity</param>
+        public void Add<T>(Entity entity)
+            where T : struct, IComponent
+        {
+            var currentArchetype = entityArchetypeMap[entity];
+            var types = archetypeMap[currentArchetype].Concat(new Type[] { typeof(T) }).ToArray();
+            MoveEntity(entity, currentArchetype, types);
+        }
+
+        private void MoveEntity(Entity entity, Archetype currentArchetype, Type[] types)
+        {
+            var newArchetype = typeMap[types];
+            if (newArchetype == defaultArchetype)
+            {
+                newArchetype = CreateArchetype(types);
+            }
+            var oldGroup = archetypeGroupMap[currentArchetype];
+            var newGroup = archetypeGroupMap[newArchetype];
+            oldGroup.Move(entity, newGroup, ref entityIndexMap);
+        }
+
+        /// <summary>
+        /// Remove a component from an entity, will change its archetype
+        /// </summary>
+        /// <typeparam name="T">Type of component to remove</typeparam>
+        /// <param name="entity">Target entity</param>
+        public void Remove<T>(Entity entity)
+            where T : struct, IComponent
+        {
+            var currentArchetype = entityArchetypeMap[entity];
+            var types = archetypeMap[currentArchetype].Except(new Type[] { typeof(T) }).ToArray();
+            MoveEntity(entity, currentArchetype, types);
+        }
         #endregion
 
         /// <summary>
@@ -345,7 +412,7 @@ namespace TinyEcs
         private IEnumerable<ArchetypeGroup> GetArchetypeGroups(Type[] includes, Type[] excludes)
         {
             var includedGroups = new List<ArchetypeGroup>();
-            for (var i = 0; i < nextArchetypeId; i++)
+            for (var i = 1; i < nextArchetypeId; i++)
             {
                 // Check if all the required types can be found in the archetype group
                 if (includes.All(t => archetypeMap.Get(i).Contains(t)))
@@ -355,7 +422,7 @@ namespace TinyEcs
                 }
             }
             var excludedGroups = new List<ArchetypeGroup>();
-            for (var i = 0; i < nextArchetypeId; i++)
+            for (var i = 1; i < nextArchetypeId; i++)
             {
                 if (excludes.Any(t => archetypeMap.Get(i).Contains(t)))
                 {
@@ -373,5 +440,24 @@ namespace TinyEcs
         /// <param name="entity">Entity from which to look up the archetype</param>
         /// <returns>Archetype of entity</returns>
         public Archetype GetArchetype(Entity entity) => entityArchetypeMap[entity];
+
+        private class TypeArrayCompararer : IEqualityComparer<Type[]>
+        {
+            public bool Equals(Type[] x, Type[] y)
+                => x.Length == y.Length && x.Union(y).Count() == y.Length;
+
+            public int GetHashCode(Type[] types)
+            {
+                unchecked
+                {
+                    int hash = 17;
+                    foreach (var type in types)
+                    {
+                        hash *= type.GetHashCode();
+                    }
+                    return hash;
+                }
+            }
+        }
     }
 }
