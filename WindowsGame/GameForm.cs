@@ -1,6 +1,7 @@
 ﻿using Game;
 using Game.Dependencies;
 using GameGl;
+using GameGl.Core.Textures;
 using OpenGL;
 using System;
 using System.Numerics;
@@ -37,7 +38,6 @@ namespace WindowsGame
 
             Gl.Enable(EnableCap.Blend);
             Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            Gl.Enable(EnableCap.DepthTest);
         }
 
         private void DoLogicUpdate()
@@ -77,7 +77,6 @@ namespace WindowsGame
         {
             DoLogicUpdate();
             debugInfoForm?.UpdateValues(debugInfo);
-            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             renderer.Render(game.Time);
             glControl.Invalidate();
         }

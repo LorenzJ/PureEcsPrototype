@@ -23,4 +23,10 @@ namespace GameGl.Core
             bindable.Unbind();
         }
     }
+
+    public static class BindLock
+    {
+        public static BindLock<T> Bind<T>(T bindable)
+            where T : IBindable => BindLock<T>.Bind(bindable);
+    }
 }

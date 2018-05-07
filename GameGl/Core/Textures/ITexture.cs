@@ -3,10 +3,8 @@ using System;
 
 namespace GameGl.Core.Textures
 {
-    public interface ITexture : IBindable, IDisposable
+    public interface ITexture : IBindable, IHandle, IDisposable
     {
-        uint Handle { get; }
-
         TextureMagFilter MagFilter { get; set; }
         TextureMinFilter MinFilter { get; set; }
         TextureWrapMode WrapS { get; set; }

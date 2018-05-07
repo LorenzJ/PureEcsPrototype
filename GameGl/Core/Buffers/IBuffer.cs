@@ -3,10 +3,7 @@ using System;
 
 namespace GameGl.Core.Buffers
 {
-    public interface IBuffer : IBindable, IDisposable
-    {
-        uint Handle { get; }
-    }
+    public interface IBuffer : IBindable, IHandle, IDisposable { }
 
     internal static class BufferUtil
     {

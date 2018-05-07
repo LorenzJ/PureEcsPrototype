@@ -3,21 +3,22 @@ using System;
 
 namespace GameGl.Core
 {
-    public struct RenderBuffer : IBindable, IDisposable
+    public struct Renderbuffer : IBindable, IHandle, IDisposable
     {
         private uint handle;
         public uint Handle => handle;
 
-        public RenderBuffer(uint handle)
+        public Renderbuffer(uint handle)
         {
             this.handle = handle;
         }
 
-        public static RenderBuffer Create(InternalFormat format, int width, int height)
+        public static Renderbuffer Create(InternalFormat format, int width, int height)
         {
-            var renderBuffer = new RenderBuffer(Gl.CreateRenderbuffer());
-            Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer.handle);
+            var renderBuffer = new Renderbuffer(Gl.CreateRenderbuffer());
+            renderBuffer.Bind();
             Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, width, height);
+            renderBuffer.Unbind();
             return renderBuffer;
         }
 

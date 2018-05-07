@@ -5,7 +5,7 @@ using System;
 
 namespace GameGl.Core
 {
-    public struct VertexArray : IBindable, IDisposable
+    public struct VertexArray : IBindable, IHandle, IDisposable
     {
         private uint handle;
         public uint Handle => handle;

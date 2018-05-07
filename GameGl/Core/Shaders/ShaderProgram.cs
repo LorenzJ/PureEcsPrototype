@@ -5,7 +5,7 @@ using System.Text;
 
 namespace GameGl.Core.Shaders
 {
-    public struct ShaderProgram : IDisposable
+    public struct ShaderProgram : IHandle, IDisposable
     {
         private uint handle;
         public uint Handle { get => handle; }

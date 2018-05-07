@@ -130,6 +130,12 @@
   <data name="BulletVertex" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\shaders\bulletvertex.glsl;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="PostProcessFrag" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\shaders\postprocessfrag.glsl;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="PostProcessVertex" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\shaders\postprocessvertex.glsl;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="ShipFrag" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\shaders\shipfrag.glsl;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

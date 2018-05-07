@@ -4,7 +4,7 @@ using System;
 
 namespace GameGl.Core
 {
-    public struct Framebuffer : IBindable, IDisposable
+    public struct Framebuffer : IBindable, IHandle, IDisposable
     {
         private uint handle;
 
@@ -46,7 +46,7 @@ namespace GameGl.Core
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, framebufferAttachment, TextureTarget.Texture2d, texture.Handle, 0);
         }
 
-        public void Attach(RenderBuffer renderBuffer, FramebufferAttachment framebufferAttachment)
+        public void Attach(Renderbuffer renderBuffer, FramebufferAttachment framebufferAttachment)
         {
             Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, framebufferAttachment, RenderbufferTarget.Renderbuffer, renderBuffer.Handle);
         }

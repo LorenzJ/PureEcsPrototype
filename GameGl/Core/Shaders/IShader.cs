@@ -5,10 +5,7 @@ using System.Text;
 
 namespace GameGl.Core.Shaders
 {
-    public interface IShader : IDisposable
-    {
-        uint Handle { get; }
-    }
+    public interface IShader : IHandle, IDisposable { }
 
     internal static class ShaderUtil
     {

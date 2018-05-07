@@ -168,6 +168,54 @@ namespace GameGl.Properties {
         /// <summary>
         ///   Looks up a localized string similar to #version 330 core
         ///
+        ///out vec4 FragColor;
+        ///in vec2 Uv;
+        ///
+        ///uniform sampler2D screenTexture;
+        ///
+        ///void main()
+        ///{
+        ///	FragColor = mix(texture(screenTexture, Uv), vec4(Uv.x, Uv.y, 0, 1), 0.5);
+        ///}.
+        /// </summary>
+        internal static string PostProcessFrag {
+            get {
+                return ResourceManager.GetString("PostProcessFrag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
+        ///const vec4 vertices[6] = vec4[6]
+        ///(
+        ///	vec4(-1, 1,    0, 0),
+        ///	vec4(-1, -1,   0, 1),
+        ///	vec4(1, -1,    1, 1),
+        ///
+        ///	vec4(1, -1,    1, 1),
+        ///	vec4(1, 1,     1, 0),
+        ///	vec4(-1, 1,    0, 0)
+        ///);
+        ///
+        ///out vec2 Uv;
+        ///
+        ///void main()
+        ///{
+        ///	gl_Position = vec4(vertices[gl_VertexID].xy, 0, 1);
+        ///	Uv = vertices[gl_VertexID].zw;
+        ///}
+        ///.
+        /// </summary>
+        internal static string PostProcessVertex {
+            get {
+                return ResourceManager.GetString("PostProcessVertex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #version 330 core
+        ///
         ///uniform float uTime;
         ///
         ///in vec2 Position;

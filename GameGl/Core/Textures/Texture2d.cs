@@ -18,20 +18,14 @@ namespace GameGl.Core.Textures
             return new Texture2d(Gl.GenTexture());
         }
 
-        public void Image(object obj, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat pixelFormat, PixelType pixelType)
-        {
-            Gl.TexImage2D(TextureTarget.Texture2d, level, internalFormat, width, height, border, pixelFormat, pixelType, obj);
-        }
+        public void Image(object obj, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat pixelFormat, PixelType pixelType) 
+            => Gl.TexImage2D(TextureTarget.Texture2d, level, internalFormat, width, height, border, pixelFormat, pixelType, obj);
 
-        public void Image(IntPtr ptr, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat pixelFormat, PixelType pixelType)
-        {
-            Gl.TexImage2D(TextureTarget.Texture2d, level, internalFormat, width, height, border, pixelFormat, pixelType, ptr);
-        }
+        public void Image(IntPtr ptr, int level, InternalFormat internalFormat, int width, int height, int border, PixelFormat pixelFormat, PixelType pixelType) 
+            => Gl.TexImage2D(TextureTarget.Texture2d, level, internalFormat, width, height, border, pixelFormat, pixelType, ptr);
 
-        public void GenerateMipmap()
-        {
-            Gl.GenerateMipmap(TextureTarget.Texture2d);
-        }
+        public void GenerateMipmap() 
+            => Gl.GenerateMipmap(TextureTarget.Texture2d);
 
         public static Texture2d FromObject(object obj, InternalFormat internalFormat, int width, int height, int border, PixelFormat pixelFormat, PixelType pixelType)
         {
