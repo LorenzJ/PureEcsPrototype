@@ -9,59 +9,77 @@ namespace Game.Dependencies
     public class BulletSpawner : IOnLoad
     {
         private Archetype[] bulletTypes = new Archetype[2];
-        private List<BulletCommand> bulletCommands = new List<BulletCommand>();
+        private List<PlayerBullet> playerBullets = new List<PlayerBullet>();
+        private List<EnemyBullet> enemyBullets = new List<EnemyBullet>();
+        private Archetype playerBulletType;
+        private Archetype enemyBulletType;
 
-        public enum BulletType : int
-        {
-            Player = 0,
-            Enemy = 1
-        }
-        public struct BulletCommand
+        public struct PlayerBullet
         {
             public Position Position;
             public Heading Heading;
-            public BulletType BulletType;
+            public float Power;
 
-            public BulletCommand(Position position, Heading heading, BulletType bulletType)
+            public PlayerBullet(Position position, Heading heading, float power)
             {
                 Position = position;
                 Heading = heading;
-                BulletType = bulletType;
+                Power = power;
+            }
+        }
+
+        public struct EnemyBullet
+        {
+            public Position Position;
+            public Heading Heading;
+
+            public EnemyBullet(Position position, Heading heading)
+            {
+                Position = position;
+                Heading = heading;
             }
         }
 
         public void OnLoad(World world)
         {
             var bullet = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(Components.Colliders.Circle), typeof(BulletTag));
-            bulletTypes[(int)BulletType.Player] = world.CreateArchetype(bullet, typeof(PlayerTag));
-            bulletTypes[(int)BulletType.Enemy] = world.CreateArchetype(bullet, typeof(EnemyTag));
+            playerBulletType = world.CreateArchetype(bullet, typeof(PlayerTag), typeof(DamageSource));
+            enemyBulletType = world.CreateArchetype(bullet, typeof(EnemyTag));
         }
 
-        public void Spawn(IEnumerable<BulletCommand> commands)
+        public void Spawn(PlayerBullet bullet)
         {
-            lock (bulletCommands)
+            lock (playerBullets)
             {
-                bulletCommands.AddRange(commands);
+                playerBullets.Add(bullet);
             }
         }
 
-        public void Spawn(BulletCommand command)
+        public void Spawn(EnemyBullet bullet)
         {
-            lock (bulletCommands)
+            lock (enemyBullets)
             {
-                bulletCommands.Add(command);
+                enemyBullets.Add(bullet);
             }
         }
 
         internal void Commit(World world)
         {
-            foreach (var bulletCommand in bulletCommands)
+            foreach (var bullet in playerBullets)
             {
-                var newBullet = world.CreateEntity(bulletTypes[(int)bulletCommand.BulletType]);
-                world.Ref<Position>(newBullet) = bulletCommand.Position;
-                world.Ref<Heading>(newBullet) = bulletCommand.Heading;
+                var newBullet = world.CreateEntity(playerBulletType);
+                world.Ref<Position>(newBullet) = bullet.Position;
+                world.Ref<Heading>(newBullet) = bullet.Heading;
+                world.Ref<DamageSource>(newBullet).Value = bullet.Power;
             }
-            bulletCommands.Clear();
+            foreach (var bullet in enemyBullets)
+            {
+                var newBullet = world.CreateEntity(enemyBulletType);
+                world.Ref<Position>(newBullet) = bullet.Position;
+                world.Ref<Heading>(newBullet) = bullet.Heading;
+            }
+            playerBullets.Clear();
+            enemyBullets.Clear();
         }
     }
 }

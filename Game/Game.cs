@@ -19,19 +19,31 @@ namespace Game
         public Game()
         {
             world = World.Create();
+        }
+
+        public void Init()
+        {
             var shipType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(ShipTag), typeof(Circle), typeof(WeaponState));
             var playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag), typeof(PlayerInfo), typeof(Input));
-            var enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag));
+            var enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag), typeof(Health));
 
             var bulletType = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(BulletTag), typeof(Circle), typeof(Ttl), typeof(ParticleTag));
             var playerBulletType = world.CreateArchetype(bulletType, typeof(PlayerTag), typeof(DamageSource));
             var enemyBulletType = world.CreateArchetype(bulletType, typeof(EnemyTag));
 
             var player = world.CreateEntity(playerShipType);
+            world.Ref<Position>(player).Vector.Y = -0.5f;
             world.Ref<PlayerInfo>(player).Speed = 0.5f;
             world.Ref<WeaponState>(player).Frequency = 0.2f;
-        }
 
+            for (var i = 0; i < 10; i++)
+            {
+                var enemy = world.CreateEntity(enemyShipType);
+                world.Ref<Position>(enemy).Vector = new System.Numerics.Vector2((i * (2f / 9f)) - 1f, 1.5f);
+                world.Ref<Health>(enemy).Value = 5f;
+                world.Ref<Heading>(enemy).Vector.Y = -.4f;
+            }
+        }
         public void Update(float deltaTime)
         {
             time += deltaTime;

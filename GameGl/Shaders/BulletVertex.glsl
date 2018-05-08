@@ -9,6 +9,6 @@ out vec2 Position;
 
 void main()
 {
-	gl_Position = vec4(aPosition * uScale + aOffset, -1, 1);
+	gl_Position = vec4(aPosition * vec2(1, .75) * uScale + aOffset * vec2(1, .75), -1, 1);
 	Position = aPosition;
 }

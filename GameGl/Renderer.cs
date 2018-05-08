@@ -1,4 +1,5 @@
-﻿using Game.Components.Transform;
+﻿using System;
+using Game.Components.Transform;
 using GameGl.Core;
 using GameGl.Core.Shaders;
 using GameGl.Core.Textures;
@@ -11,17 +12,21 @@ namespace GameGl
     public class Renderer
     {
         private BulletBatch bulletBatch = BulletBatch.Create();
-        private PlayerBatch playerBatch = PlayerBatch.Create();
+        private ShipBatch shipBatch = ShipBatch.Create();
         private Background background = Background.Create();
 
-        private Framebuffer offscreenBuffer;
-        private VertexArray offscreenVertexArray;
-        private ShaderProgram offscreenProgram;
+        //private Framebuffer offscreenBuffer;
+        //private VertexArray offscreenVertexArray;
+        //private ShaderProgram offscreenProgram;
 
         private int playerBulletCount;
         private Position[] playerBulletPositions;
+
         private int playerCount;
         private Position[] playerPositions;
+
+        private int enemyCount;
+        private Position[] enemyPositions;
 
         //public Renderer()
         //{
@@ -58,7 +63,8 @@ namespace GameGl
             //Gl.ActiveTexture(TextureUnit.Texture0);
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             background.Draw(time);
-            playerBatch.Draw(playerPositions, playerCount, time);
+            shipBatch.Draw(playerPositions, playerCount, time);
+            shipBatch.Draw(enemyPositions, enemyCount, time);
             bulletBatch.Draw(playerBulletPositions, playerBulletCount, time);
             //offscreenBuffer.Unbind();
 
@@ -74,6 +80,12 @@ namespace GameGl
         {
             playerCount = length;
             playerPositions = (Position[])positions;
+        }
+
+        internal void SetEnemies(RoDataStream<Position> positions, int length)
+        {
+            enemyPositions = (Position[])positions;
+            enemyCount = length;
         }
 
         internal void SetPlayerBullets(RoDataStream<Position> positions, int length)

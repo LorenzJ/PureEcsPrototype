@@ -155,7 +155,7 @@ namespace GameGl.Properties {
         ///
         ///void main()
         ///{
-        ///	gl_Position = vec4(aPosition * uScale + aOffset, -1, 1);
+        ///	gl_Position = vec4(aPosition * vec2(1, .5) * uScale + aOffset * vec2(1, .5), -1, 1);
         ///	Position = aPosition;
         ///}.
         /// </summary>

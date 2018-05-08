@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -62,6 +63,35 @@ namespace TinyEcs
         private Queue<int> openEntityIds;
 
         private static Archetype defaultArchetype;
+
+        public class DebugEvents_
+        {
+            private World world;
+
+            public DebugEvents_(World world)
+            {
+                this.world = world;
+            }
+
+            public event EventHandler<Entity> EntityAdded;
+            public event EventHandler<Entity> EntityRemoved;
+
+            [Conditional("DEBUG")]
+            internal void RaiseEntityAdded(Entity entity)
+            {
+                EntityAdded?.Invoke(world, entity);
+            }
+
+            [Conditional("DEBUG")]
+            internal void RaiseEntityRemoved(Entity entity)
+            {
+                EntityRemoved?.Invoke(world, entity);
+            }
+
+        }
+        private DebugEvents_ debugEvents;
+        public DebugEvents_ DebugEvents => debugEvents;
+
 
         static World()
         {
@@ -174,6 +204,9 @@ namespace TinyEcs
                     onLoad.OnLoad(world);
                 }
             }
+
+            // Create DebugEvents
+            world.debugEvents = new DebugEvents_(world);
             return world;
         }
         #endregion
@@ -289,6 +322,9 @@ namespace TinyEcs
             var archetypeGroup = archetypeGroupMap[archetype];
             entityArchetypeGroupMap[entity] = archetypeGroup;
             archetypeGroup.Add(entity, ref entityIndexMap);
+
+            // Raise an event when debugging is enabled
+            debugEvents.RaiseEntityAdded(entity);
             return entity;
 
             int GetNextEntityId()
@@ -321,6 +357,9 @@ namespace TinyEcs
             archetypeGroup.Remove(entity, ref entityIndexMap);
             // Ensure that the id can be reused
             openEntityIds.Enqueue(entity.handle);
+
+            // Raise event in debug mode
+            debugEvents.RaiseEntityRemoved(entity);
         }
 
         /// <summary>
@@ -348,6 +387,20 @@ namespace TinyEcs
             var index = entityIndexMap[entity];
             // Finally return a reference to the component inside the group
             return ref archetypeGroup.Ref<T>(index);
+        }
+
+        /// <summary>
+        /// Get a copy of a component belonging to an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="componentType">Type of the component</param>
+        /// <returns>Copy of component</returns>
+        /// <remarks>Prefer to use the generic version as it avoids boxing</remarks>
+        public object Get(Entity entity, Type componentType)
+        {
+            var archetypeGroup = entityArchetypeGroupMap[entity];
+            var index = entityIndexMap[entity];
+            return archetypeGroup.GetComponents(componentType).GetValue(index);
         }
 
         /// <summary>
@@ -440,6 +493,13 @@ namespace TinyEcs
         /// <param name="entity">Entity from which to look up the archetype</param>
         /// <returns>Archetype of entity</returns>
         public Archetype GetArchetype(Entity entity) => entityArchetypeMap[entity];
+
+        /// <summary>
+        /// Get the component types of an archetype.
+        /// </summary>
+        /// <param name="archetype">Archetype</param>
+        /// <returns>Component types of archetype</returns>
+        public Type[] GetArchetypeTypes(Archetype archetype) => archetypeMap[archetype];
 
         private class TypeArrayCompararer : IEqualityComparer<Type[]>
         {

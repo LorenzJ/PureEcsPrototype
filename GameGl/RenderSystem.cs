@@ -20,6 +20,7 @@ namespace GameGl
         protected override void Execute(World world, RenderMessage message)
         {
             renderer.SetPlayers(players.Positions, players.Length);
+            renderer.SetEnemies(enemies.Positions, enemies.Length);
             renderer.SetPlayerBullets(playerBullets.Positions, playerBullets.Length);
             //renderer.QueueEnemyBullets(enemyBullets.positions, enemyBullets.length);
             //renderer.QueuePlayers(players.positions, players.length);

@@ -11,7 +11,7 @@ using OpenGL;
 
 namespace GameGl
 {
-    internal class PlayerBatch
+    internal class ShipBatch
     {
         private ShaderProgram program;
         private ArrayBuffer ivbo;
@@ -19,7 +19,7 @@ namespace GameGl
         private FloatUniform timeUniform;
         private FloatUniform scaleUniform;
 
-        public PlayerBatch(ShaderProgram program, ArrayBuffer ivbo, VertexArray vao, FloatUniform timeUniform, FloatUniform scaleUniform)
+        public ShipBatch(ShaderProgram program, ArrayBuffer ivbo, VertexArray vao, FloatUniform timeUniform, FloatUniform scaleUniform)
         {
             this.program = program;
             this.ivbo = ivbo;
@@ -28,7 +28,7 @@ namespace GameGl
             this.scaleUniform = scaleUniform;
         }
 
-        internal static PlayerBatch Create()
+        internal static ShipBatch Create()
         {
             ShaderProgram program;
             using (var vertexShader = VertexShader.FromSource(Resources.BulletVertex))
@@ -39,7 +39,7 @@ namespace GameGl
             var timeUniform = program.GetFloatUniform("uTime");
             var scaleUniform = program.GetFloatUniform("uScale");
 
-            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 8, BufferUsage.DynamicDraw);
+            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 128, BufferUsage.DynamicDraw);
             var vbo = Triangle.VertexBuffer;
 
             var builder = new VertexArrayBuilder();
@@ -50,19 +50,19 @@ namespace GameGl
             builder.SetAttributeDivisor(1, 1);
             var vao = builder.Build();
 
-            return new PlayerBatch(program, ivbo, vao, timeUniform, scaleUniform);
+            return new ShipBatch(program, ivbo, vao, timeUniform, scaleUniform);
         } 
 
-        internal void Draw(Position[] playerPositions, int playerCount, float time)
+        internal void Draw(Position[] positions, int count, float time)
         {
             program.Use();
-            scaleUniform.Set(.2f);
+            scaleUniform.Set(.1f);
             timeUniform.Set(time);
             ivbo.Bind();
-            ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * playerCount, playerPositions);
+            ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * count, positions);
             ivbo.Unbind();
             vao.Bind();
-            Gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 3, playerCount);
+            Gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 3, count);
             vao.Unbind();
         }
     }

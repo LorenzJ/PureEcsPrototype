@@ -40,9 +40,14 @@ namespace Game.Systems
                 if ((data.Inputs[i].Commands & InputCommands.Fire) > 0 && data.Weapons[i].Timeout <= 0)
                 {
                     bulletSpawner.Spawn(
-                        new BulletSpawner.BulletCommand(data.Positions[i], 
-                        new Heading(new Vector2(0, 1)), 
-                        BulletSpawner.BulletType.Player));
+                        new BulletSpawner.PlayerBullet(data.Positions[i], 
+                        new Heading(new Vector2(0, 1)), data.Weapons[i].Power));
+                    bulletSpawner.Spawn(
+                        new BulletSpawner.PlayerBullet(data.Positions[i],
+                        new Heading(Vector2.Normalize(new Vector2(+.5f, 1))), data.Weapons[i].Power));
+                    bulletSpawner.Spawn(
+                        new BulletSpawner.PlayerBullet(data.Positions[i],
+                        new Heading(Vector2.Normalize(new Vector2(-.5f, 1))), data.Weapons[i].Power));
                     data.Weapons[i].Timeout = data.Weapons[i].Frequency;
                 }
             }
