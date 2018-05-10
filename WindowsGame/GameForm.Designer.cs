@@ -101,18 +101,21 @@
             // 
             // tableLayoutPanel1
             // 
+            this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tableLayoutPanel1.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.Single;
             this.tableLayoutPanel1.ColumnCount = 3;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 39.22156F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60.77844F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 167F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.Controls.Add(this.entityList, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.componentList, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.fieldList, 2, 0);
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 173);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(490, 247);
             this.tableLayoutPanel1.TabIndex = 2;
             // 
@@ -122,7 +125,7 @@
             this.entityList.FormattingEnabled = true;
             this.entityList.Location = new System.Drawing.Point(4, 4);
             this.entityList.Name = "entityList";
-            this.entityList.Size = new System.Drawing.Size(119, 239);
+            this.entityList.Size = new System.Drawing.Size(155, 239);
             this.entityList.TabIndex = 3;
             this.entityList.SelectedValueChanged += new System.EventHandler(this.EntityList_SelectedValueChanged);
             // 
@@ -131,9 +134,9 @@
             this.componentList.DisplayMember = "Name";
             this.componentList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.componentList.FormattingEnabled = true;
-            this.componentList.Location = new System.Drawing.Point(130, 4);
+            this.componentList.Location = new System.Drawing.Point(166, 4);
             this.componentList.Name = "componentList";
-            this.componentList.Size = new System.Drawing.Size(187, 239);
+            this.componentList.Size = new System.Drawing.Size(155, 239);
             this.componentList.TabIndex = 4;
             this.componentList.SelectedValueChanged += new System.EventHandler(this.ComponentList_SelectedValueChanged);
             // 
@@ -141,10 +144,10 @@
             // 
             this.fieldList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fieldList.FormattingEnabled = true;
-            this.fieldList.Location = new System.Drawing.Point(324, 4);
+            this.fieldList.Location = new System.Drawing.Point(328, 4);
             this.fieldList.Name = "fieldList";
             this.fieldList.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.fieldList.Size = new System.Drawing.Size(162, 239);
+            this.fieldList.Size = new System.Drawing.Size(158, 239);
             this.fieldList.TabIndex = 5;
             // 
             // pauseResumeButton

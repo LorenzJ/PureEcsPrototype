@@ -50,6 +50,7 @@ namespace Game.Systems
             foreach (var (bullet, enemy) in pairs.Result)
             {
                 list.Add(bullet);
+                // Could be thread unsafe if other systems were to modify health as well
                 world.Ref<Health>(enemy).Value -= world.Ref<DamageSource>(bullet).Value;
                 if (world.Ref<Health>(enemy).Value <= 0)
                 {
@@ -68,6 +69,7 @@ namespace Game.Systems
                 world.Ref<PlayerInfo>(player).Lives -= 1;
                 world.Ref<Position>(player).Vector = new Vector2();
             }
+            deadEntityList.AddRange(list);
         }
 
         private List<(Entity, Entity)> 

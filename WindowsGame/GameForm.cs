@@ -47,7 +47,6 @@ namespace WindowsGame
             Gl.Enable(EnableCap.Blend);
             Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             previousTime = stopwatch.Elapsed.TotalSeconds;
-            stopwatch.Start();
         }
 
         private void DebugEvents_EntityRemoved(object sender, Entity e)
@@ -55,7 +54,7 @@ namespace WindowsGame
             entityList.Items.Remove(e);
         }
 
-        private void DebugEvents_EntityAdded(object sender, TinyEcs.Entity e)
+        private void DebugEvents_EntityAdded(object sender, Entity e)
         {
             entityList.Items.Add(e);
         }
@@ -98,7 +97,7 @@ namespace WindowsGame
             renderer.Render(game.Time);
 
             ticks++;
-            if (ticks >= 50)
+            if (ticks >= 50 && !splitContainer.Panel2Collapsed)
             {
                 ticks = 0;
                 foreach (var control in tableLayoutPanel.Controls)
@@ -121,6 +120,10 @@ namespace WindowsGame
 
         private void GlControl_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.F2)
+            {
+                splitContainer.Panel2Collapsed = !splitContainer.Panel2Collapsed;
+            }
             keyBinds.HandleKeyDown(e.KeyCode);
         }
 

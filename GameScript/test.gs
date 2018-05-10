@@ -9,3 +9,8 @@ system Movement
 	{
 		Position.vector := Position.vector + Direction.vector * msg.deltaTime;
 	}
+
+struct Position
+{
+	Vector::vec2
+}

@@ -73,6 +73,23 @@ module Parsing =
 
     expressionRef := opp.ExpressionParser .>> ws
 
+    (****************
+     * Type parsing *
+     ****************)
+
+    type Type =
+    | TypeName of string
+    | Array of Type
+
+    let type', typeRef = createParserForwardedToRef()
+    let arrayType = (symbol "#") >>. type' |>> Array
+    let typeName = ident |>> TypeName
+    typeRef := choice
+        [
+            typeName
+            arrayType
+        ]
+
     (******************
      * System parsing *
      ******************)
@@ -81,12 +98,14 @@ module Parsing =
         {
         Name: string
         Components: (string option * string) list
-        Event: string * string
+        Event: string * Type
         Action: Expression
         Condition: Expression option
         }
 
-    let variableDeclaration = ident .>>. (symbol "::" >>. ident)
+    
+
+    let variableDeclaration = ident .>>. (symbol "::" >>. type')
     let componentName = (opt (ident .>> followedBy (symbol ".")) .>>. ident)
     let system = 
         pipe5
@@ -103,3 +122,29 @@ module Parsing =
             Condition = cond
             Action = expr
         }
+
+    (******************
+     * Struct parsing *
+     ******************)
+
+    type Struct =
+        {
+        Name: string
+        Base: string option
+        Fields: (string * Type) list
+        }
+
+    let struct' = 
+        pipe3
+            (keyword "struct" >>. ident)
+            (opt (symbol "::" >>. ident))
+            (between (symbol "{") (symbol "}") (many variableDeclaration))
+        <| fun name base' fields -> { Struct.Name = name; Base = base'; Fields = fields }
+
+    type ModulePart =
+    | Struct of Struct
+    | System of System
+
+    let module' = ws >>. many (choice [system |>> System; struct' |>> Struct] .>> ws) .>> eof
+    let parseModule name stream encoding =
+        runParserOnStream module' name stream encoding

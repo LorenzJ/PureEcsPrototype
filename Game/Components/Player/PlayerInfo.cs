@@ -7,6 +7,5 @@ namespace Game.Components.Player
         public int Id;
         public int Lives;
         public float Speed;
-        public float FireTimeout;
     }
 }

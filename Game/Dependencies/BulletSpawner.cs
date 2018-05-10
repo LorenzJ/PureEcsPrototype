@@ -3,6 +3,7 @@ using Game.Components;
 using TinyEcs;
 using System.Collections.Generic;
 using System;
+using Game.Components.Colliders;
 
 namespace Game.Dependencies
 {
@@ -71,6 +72,7 @@ namespace Game.Dependencies
                 world.Ref<Position>(newBullet) = bullet.Position;
                 world.Ref<Heading>(newBullet) = bullet.Heading;
                 world.Ref<DamageSource>(newBullet).Value = bullet.Power;
+                world.Ref<Circle>(newBullet) = new Circle(default, 0.05f);
             }
             foreach (var bullet in enemyBullets)
             {

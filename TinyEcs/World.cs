@@ -64,16 +64,25 @@ namespace TinyEcs
 
         private static Archetype defaultArchetype;
 
+        /// <summary>
+        /// Helper class for debugging.
+        /// </summary>
         public class DebugEvents_
         {
             private World world;
 
-            public DebugEvents_(World world)
+            internal DebugEvents_(World world)
             {
                 this.world = world;
             }
 
+            /// <summary>
+            /// Event called when an entity is added and the DEBUG symbol is defined.
+            /// </summary>
             public event EventHandler<Entity> EntityAdded;
+            /// <summary>
+            /// Event called when an entity is removed and the DEBUG symbol is defined.
+            /// </summary>
             public event EventHandler<Entity> EntityRemoved;
 
             [Conditional("DEBUG")]
@@ -90,6 +99,9 @@ namespace TinyEcs
 
         }
         private DebugEvents_ debugEvents;
+        /// <summary>
+        /// DebugEvents instance for this world.
+        /// </summary>
         public DebugEvents_ DebugEvents => debugEvents;
 
 

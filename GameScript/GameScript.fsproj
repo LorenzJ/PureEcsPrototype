@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Include="test.gs" />
     <Compile Include="Parsing.fs" />
+    <Compile Include="Compilation.fs" />
   </ItemGroup>
 
   <ItemGroup>
