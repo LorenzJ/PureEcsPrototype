@@ -73,7 +73,6 @@ namespace TinyEcs
 
             var readMethod = new Func<RoDataStream<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
             var writeMethod = new Func<RwDataStream<DummyComponent>>(componentGroup.GetWrite<DummyComponent>).Method.GetGenericMethodDefinition();
-           
             injectors =
                 CreateInjectors(targetObject, readFields, readMethod)
                 .Concat(CreateInjectors(targetObject, writeFields, writeMethod))
@@ -87,14 +86,11 @@ namespace TinyEcs
             var injectors = new List<Action>();
             foreach (var field in fields)
             {
-                var type = GetComponentType(field);
-                var method = methodInfo.MakeGenericMethod(type);
-
+                var method = methodInfo.MakeGenericMethod(GetComponentType(field));
                 var expr = Expression.Lambda<Action>(
                     Expression.Assign(
-                        Expression.Field(Expression.Constant(targetObject, targetObject.GetType()), field),
+                        Expression.Field(Expression.Constant(targetObject), field),
                         Expression.Call(Expression.Constant(componentGroup), method)));
-
                 injectors.Add(expr.Compile());
             }
             return injectors;
@@ -107,7 +103,7 @@ namespace TinyEcs
             setEntities?.Invoke(componentGroup.GetEntities());
             foreach (var injector in injectors)
             {
-                injector.Invoke();
+                injector();
             }
         }
 
