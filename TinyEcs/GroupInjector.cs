@@ -41,12 +41,19 @@ namespace TinyEcs
                 .Where(fi => fi.GetCustomAttribute(typeof(ExcludeAttribute)) != null);
             var includedTagFields = tagFields.Except(excludedTagFields);
 
-            
             var includes = readFields.Select(GetComponentType)
                 .Concat(writeFields.Select(GetComponentType))
                 .Concat(includedTagFields.Select(fi => fi.FieldType))
                 .ToArray();
             var excludes = excludedTagFields.Select(fi => fi.FieldType).ToArray();
+
+            var otherFields = new FieldInfo[] { lengthField, entitiesField }.Where(fi => fi != null);
+
+            var unknownFields = fields.Except(writeFields).Except(readFields).Except(tagFields).Except(otherFields);
+            if (unknownFields.Count() > 0)
+            {
+                throw new UnknownFieldsException(unknownFields);
+            }
 
             componentGroup = world.CreateComponentGroup(includes, excludes);
             writes = writeFields.Select(GetComponentType).ToArray();
@@ -73,6 +80,7 @@ namespace TinyEcs
 
             var readMethod = new Func<RoDataStream<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
             var writeMethod = new Func<RwDataStream<DummyComponent>>(componentGroup.GetWrite<DummyComponent>).Method.GetGenericMethodDefinition();
+           
             injectors =
                 CreateInjectors(targetObject, readFields, readMethod)
                 .Concat(CreateInjectors(targetObject, writeFields, writeMethod))
@@ -81,19 +89,16 @@ namespace TinyEcs
 
         private static Type GetComponentType(FieldInfo fi) => fi.FieldType.GetGenericArguments()[0];
 
-        private List<Action> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
+        private IEnumerable<Action> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
         {
-            var injectors = new List<Action>();
-            foreach (var field in fields)
+            return fields.Select(field =>
             {
                 var method = methodInfo.MakeGenericMethod(GetComponentType(field));
-                var expr = Expression.Lambda<Action>(
+                return Expression.Lambda<Action>(
                     Expression.Assign(
                         Expression.Field(Expression.Constant(targetObject), field),
-                        Expression.Call(Expression.Constant(componentGroup), method)));
-                injectors.Add(expr.Compile());
-            }
-            return injectors;
+                        Expression.Call(Expression.Constant(componentGroup), method))).Compile();
+            });
         }
 
         public void Inject()
@@ -103,7 +108,7 @@ namespace TinyEcs
             setEntities?.Invoke(componentGroup.GetEntities());
             foreach (var injector in injectors)
             {
-                injector();
+                injector.Invoke();
             }
         }
 
