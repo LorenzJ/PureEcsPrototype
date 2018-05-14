@@ -5,6 +5,7 @@ using OpenGL;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Numerics;
 using System.Windows.Forms;
 using TinyEcs;
@@ -137,7 +138,7 @@ namespace WindowsGame
             e.IsInputKey = true;
         }
 
-        private void pauseResumeButton_Click(object sender, EventArgs e)
+        private void PauseResumeButton_Click(object sender, EventArgs e)
         {
             if (stopwatch.IsRunning)
             {

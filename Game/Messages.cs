@@ -27,6 +27,21 @@ namespace Game
 
     public struct DetectCollisionsMessage : IMessage { }
 
+    //public struct DamageMessage : IMessage
+    //{
+    //    public Entity Source;
+    //    public Entity Target;
+
+    //    public float Value;
+
+    //    public DamageMessage(Entity source, Entity target, float value)
+    //    {
+    //        Source = source;
+    //        Target = target;
+    //        Value = value;
+    //    }
+    //}
+
     public struct InputMessage : IMessage
     {
         public InputCommands[] inputCommands;

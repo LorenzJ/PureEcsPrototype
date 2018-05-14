@@ -158,7 +158,7 @@
             this.pauseResumeButton.TabIndex = 1;
             this.pauseResumeButton.Text = "||►";
             this.pauseResumeButton.UseVisualStyleBackColor = true;
-            this.pauseResumeButton.Click += new System.EventHandler(this.pauseResumeButton_Click);
+            this.pauseResumeButton.Click += new System.EventHandler(this.PauseResumeButton_Click);
             // 
             // tableLayoutPanel
             // 

@@ -3,7 +3,6 @@ using Game.Components.Colliders;
 using Game.Components.Player;
 using Game.Components.Transform;
 using Game.Dependencies;
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;

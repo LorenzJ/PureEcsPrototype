@@ -19,6 +19,7 @@ namespace Game.Systems
             public BulletTag BulletTag;
         }
         [Group] public Bullets bullets;
+        public Bullets bullets2 = new Bullets();
 
         private DeadEntityList deaths;
         private List<Entity> oobBullets = new List<Entity>(64);

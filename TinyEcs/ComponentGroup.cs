@@ -9,19 +9,18 @@ namespace TinyEcs
         internal ArchetypeGroup[] archetypeGroups;
         private Dictionary<Type, Array2> componentsMap;
         private Array2<Entity> entities;
-        private Type[] componentTypes;
-        private Type[] tagTypes;
-        private int count;
+        private readonly Type[] componentTypes;
+        private readonly Type[] tagTypes;
         internal Type[] includes;
         internal Type[] excludes;
 
-        public int Count => count;
+        public int Count { get; private set; }
 
         internal ComponentGroup(ArchetypeGroup[] archetypeGroups, Type[] includes, Type[] excludes)
         {
             this.includes = includes;
             this.excludes = excludes;
-            entities = new Array2<Entity>(64);
+            entities = new Array2<Entity>(1);
             this.archetypeGroups = archetypeGroups;
             componentTypes = includes.Where(t => t.GetInterfaces().Contains(typeof(IComponent))).ToArray();
             tagTypes = includes.Where(t => t.GetInterfaces().Contains(typeof(ITag))).ToArray();
@@ -40,14 +39,14 @@ namespace TinyEcs
                 return;
             }
             // Get the required amount of elements
-            count = archetypeGroups.Select(a => a.Count).Aggregate((a, b) => a + b);
+            Count = archetypeGroups.Select(a => a.Count).Aggregate((a, b) => a + b);
 
             // Create the arrays
-            entities.Resize(count);
+            entities.Resize(Count);
             foreach (var type in componentTypes)
             {
                 var arr = componentsMap[type];
-                arr.Resize(count);
+                arr.Resize(Count);
                 componentsMap[type] = arr;
             }
 

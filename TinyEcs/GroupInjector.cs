@@ -1,164 +1,117 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace TinyEcs
-{
+{ 
     internal class GroupInjector
     {
-        const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private readonly ComponentGroup componentGroup;
+        private readonly Action<int> setLength;
+        private readonly Action<RoDataStream<Entity>> setEntities;
+        private readonly Action[] injectors;
+        private readonly Type[] writes;
 
-        private struct Injector
+        private struct DummyComponent : IComponent { }
+
+        public GroupInjector(World world, object targetObject)
         {
-            public Type Type;
-            public FieldInfo Field;
-            public ConstructorInfo Constructor;
-
-            public Injector(Type type, FieldInfo field, ConstructorInfo constructor)
-            {
-                Type = type;
-                Field = field;
-                Constructor = constructor;
-            }
-        }
-
-        // The object to inject the components into
-        private object targetObject;
-        // The backing component group
-        private ComponentGroup componentGroup;
-        FieldInfo lengthField;
-        private FieldInfo entitiesField;
-        private Injector[] readInjectors;
-        private Injector[] writeInjectors;
-        private Type[] includeTags;
-        private Type[] excludeTags;
-
-        internal GroupInjector(World world, object targetObject)
-        {
-            this.targetObject = targetObject;
             var targetType = targetObject.GetType();
+            var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
 
-            var fields = targetType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            lengthField = targetType.GetField("Length", bindingFlags);
-            entitiesField = fields
+            var fields = targetType.GetFields(bindingFlags);
+            var lengthField = targetType.GetField("Length", bindingFlags);
+            var entitiesField = fields
                 .Where(fi => fi.FieldType == typeof(RoDataStream<Entity>))
                 .SingleOrDefault();
-           
-            readInjectors = CreateReadInjectors(fields);
-            writeInjectors = CreateWriteInjectors(fields);
-            includeTags = FindIncludeTags(fields);
-            excludeTags = FindExcludeTags(fields);
-
-            var includes =
-                readInjectors.Select(ri => ri.Type)
-                .Union(writeInjectors.Select(wi => wi.Type))
-                .Union(includeTags).ToArray();
-
-            componentGroup = world.CreateComponentGroup(includes, excludeTags);
-
-            // Check if all fields were handled, otherwise throw an exception.
-            {
-                var fieldCount = 0;
-                if (lengthField != null) fieldCount++;
-                if (entitiesField != null) fieldCount++;
-                fieldCount += readInjectors.Length;
-                fieldCount += writeInjectors.Length;
-                fieldCount += includeTags.Length;
-                fieldCount += excludeTags.Length;
-                if (fieldCount != fields.Length)
-                {
-                    throw new UnknownFieldsException($"{fields.Length - fieldCount} unknown fields in group");
-                }
-            }
-        }
-
-        public void Inject()
-        {
-            // Make sure the data is up to date.
-            componentGroup.UpdateStream();
-            // Inject the write injectors
-            foreach (var injector in writeInjectors)
-            {
-                var stream = injector.Constructor.Invoke(new object[] { componentGroup.GetWrite(injector.Type) });
-                injector.Field.SetValue(targetObject, stream);
-            }
-
-            // Do the same for the read injectors
-            foreach (var injector in readInjectors)
-            {
-                var stream = injector.Constructor.Invoke(new object[] { componentGroup.GetRead(injector.Type) });
-                injector.Field.SetValue(targetObject, stream);
-            }
-
-            // Inject length and entities
-            if (entitiesField != null)
-            {
-                entitiesField.SetValue(targetObject, componentGroup.GetEntities());
-            }
-            if (lengthField != null)
-            {
-                lengthField.SetValue(targetObject, componentGroup.Count);
-            }
-        }
-
-        public void WriteAndUnlock()
-        {
-            foreach (var injector in writeInjectors)
-            {
-                componentGroup.WriteAndUnlock(injector.Type);
-            }
-        }
-
-        private Injector[] CreateWriteInjectors(FieldInfo[] fields)
-        {
+            var readFields = fields
+                .Where(fi => fi.FieldType.IsGenericType
+                    && fi.FieldType.GetGenericTypeDefinition() == typeof(RoDataStream<>)
+                    && fi.FieldType != typeof(RoDataStream<Entity>))
+                .ToArray();
             var writeFields = fields
-                .Where(fi => fi.FieldType.IsGenericType 
+                .Where(fi => fi.FieldType.IsGenericType
                     && fi.FieldType.GetGenericTypeDefinition() == typeof(RwDataStream<>))
                 .ToArray();
+            var tagFields = fields
+                .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag)));
+            var excludedTagFields = tagFields
+                .Where(fi => fi.GetCustomAttribute(typeof(ExcludeAttribute)) != null);
+            var includedTagFields = tagFields.Except(excludedTagFields);
 
-            var rwDataStreamType = typeof(RwDataStream<>);
-            return CreateInjectors(writeFields, rwDataStreamType); ;
-        }
-
-        private Injector[] CreateReadInjectors(FieldInfo[] fields)
-        {
-            var readFields = fields
-                .Where(fi => fi.FieldType.IsGenericType 
-                    && fi.FieldType != typeof(RoDataStream<Entity>) // Make sure not to include entities in the search
-                    && fi.FieldType.GetGenericTypeDefinition() == typeof(RoDataStream<>))
+            
+            var includes = readFields.Select(GetComponentType)
+                .Concat(writeFields.Select(GetComponentType))
+                .Concat(includedTagFields.Select(fi => fi.FieldType))
                 .ToArray();
+            var excludes = excludedTagFields.Select(fi => fi.FieldType).ToArray();
 
-            var roDataStreamType = typeof(RoDataStream<>);
-            return CreateInjectors(readFields, roDataStreamType);
+            componentGroup = world.CreateComponentGroup(includes, excludes);
+            writes = writeFields.Select(GetComponentType).ToArray();
+
+            if (lengthField != null)
+            {
+                var parameter = Expression.Parameter(typeof(int));
+                var expr = Expression.Lambda<Action<int>>(
+                    Expression.Assign(
+                            Expression.Field(Expression.Constant(targetObject, targetType), lengthField),
+                            parameter), parameter);
+                setLength = expr.Compile();
+            }
+
+            if (entitiesField != null)
+            {
+                var parameter = Expression.Parameter(typeof(RoDataStream<Entity>));
+                var expr = Expression.Lambda<Action<RoDataStream<Entity>>>(
+                    Expression.Assign(
+                        Expression.Field(Expression.Constant(targetObject, targetType), entitiesField),
+                        parameter), parameter);
+                setEntities = expr.Compile();
+            }
+
+            var readMethod = new Func<RoDataStream<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
+            var writeMethod = new Func<RwDataStream<DummyComponent>>(componentGroup.GetWrite<DummyComponent>).Method.GetGenericMethodDefinition();
+           
+            injectors =
+                CreateInjectors(targetObject, readFields, readMethod)
+                .Concat(CreateInjectors(targetObject, writeFields, writeMethod))
+                .ToArray();
         }
 
-        private static Injector[] CreateInjectors(FieldInfo[] fields, Type dataStreamType)
-        {
-            var injectors = new Injector[fields.Length];
-            for (var i = 0; i < injectors.Length; i++)
-            {
-                injectors[i].Type = fields[i].FieldType.GetGenericArguments()[0];
-                injectors[i].Field = fields[i];
+        private static Type GetComponentType(FieldInfo fi) => fi.FieldType.GetGenericArguments()[0];
 
-                // Get the generic type of the data stream
-                var genericDataStreamType = dataStreamType.MakeGenericType(injectors[i].Type);
-                // Get the constructor
-                injectors[i].Constructor = genericDataStreamType.GetConstructor(new Type[] { injectors[i].Type.MakeArrayType() });
+        private List<Action> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
+        {
+            var injectors = new List<Action>();
+            foreach (var field in fields)
+            {
+                var type = GetComponentType(field);
+                var method = methodInfo.MakeGenericMethod(type);
+
+                var expr = Expression.Lambda<Action>(
+                    Expression.Assign(
+                        Expression.Field(Expression.Constant(targetObject, targetObject.GetType()), field),
+                        Expression.Call(Expression.Constant(componentGroup), method)));
+
+                injectors.Add(expr.Compile());
             }
             return injectors;
         }
 
-        internal Type[] FindIncludeTags(FieldInfo[] fields)
-            => fields
-                .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag))
-                    && fi.GetCustomAttribute(typeof(ExcludeAttribute)) == null)
-                .Select(fi => fi.FieldType).ToArray();
+        public void Inject()
+        {
+            componentGroup.UpdateStream();
+            setLength?.Invoke(componentGroup.Count);
+            setEntities?.Invoke(componentGroup.GetEntities());
+            foreach (var injector in injectors)
+            {
+                injector.Invoke();
+            }
+        }
 
-        internal Type[] FindExcludeTags(FieldInfo[] fields)
-            => fields
-                .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag))
-                    && fi.GetCustomAttribute(typeof(ExcludeAttribute)) != null)
-                .Select(fi => fi.FieldType).ToArray();
+        public void WriteAndUnlock() => componentGroup.WriteAndUnlock(writes);
 
     }
 }

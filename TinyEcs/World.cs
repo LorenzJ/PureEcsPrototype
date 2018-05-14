@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,11 +16,6 @@ namespace TinyEcs
     public class World
     {
         // Todo: Move cold data to a sub class
-        /// <summary>
-        /// Reverse type to archetype lookup
-        /// </summary>
-        private Dictionary<Type[], Archetype> typeMap;
-        private FlatMap<Archetype, bool> archetypeExistanceMap;
         /// <summary>
         /// Archetype type registry
         /// </summary>
@@ -47,7 +43,7 @@ namespace TinyEcs
         /// <summary>
         /// A lookup of message type to systems
         /// </summary>
-        private Lookup<Type, ISystem> systemMap;
+        private readonly Lookup<Type, ISystem> systemMap;
         /// <summary>
         /// A lookup for group injectors of systems
         /// </summary>
@@ -55,7 +51,15 @@ namespace TinyEcs
         /// <summary>
         /// Dictionary of dependencies
         /// </summary>
-        private Dictionary<Type, object> dependencyMap;
+        private readonly Dictionary<Type, object> dependencyMap;
+        /// <summary>
+        /// Reverse type to archetype lookup
+        /// </summary>
+        private Dictionary<Type[], Archetype> typeMap;
+        private FlatMap<Archetype, bool> archetypeExistanceMap;
+
+        private Dictionary<Type, object> postMessages;
+
         private ConcurrentQueue<Action> postActions;
 
         private int nextArchetypeId;
@@ -69,7 +73,7 @@ namespace TinyEcs
         /// </summary>
         public class DebugEvents_
         {
-            private World world;
+            private readonly World world;
 
             internal DebugEvents_(World world)
             {
@@ -98,12 +102,10 @@ namespace TinyEcs
             }
 
         }
-        private DebugEvents_ debugEvents;
         /// <summary>
         /// DebugEvents instance for this world.
         /// </summary>
-        public DebugEvents_ DebugEvents => debugEvents;
-
+        public DebugEvents_ DebugEvents { get; private set; }
 
         static World()
         {
@@ -134,6 +136,7 @@ namespace TinyEcs
             this.dependencyMap = dependencyMap;
 
             postActions = new ConcurrentQueue<Action>();
+            postMessages = new Dictionary<Type, object>();
 
             nextArchetypeId = 1;
             nextEntityId = 0;
@@ -218,7 +221,7 @@ namespace TinyEcs
             }
 
             // Create DebugEvents
-            world.debugEvents = new DebugEvents_(world);
+            world.DebugEvents = new DebugEvents_(world);
             return world;
         }
         #endregion
@@ -245,9 +248,68 @@ namespace TinyEcs
             Parallel.ForEach(systems, system => system.Execute(this, message));
             Parallel.ForEach(injectors, injector => injector.WriteAndUnlock());
 
+            foreach (var entry in postMessages)
+            {
+                var messages = entry.Value as IEnumerable;
+                foreach (var postMessage in messages)
+                {
+                    Post(postMessage as IMessage);
+                }
+            }
+
             while (postActions.TryDequeue(out var action))
             {
                 action.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Send a message
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message"></param>
+        public void Send<T>(T message)
+            where T : IMessage
+        {
+            var list = GetMessageList<T>();
+            list.Add(message);
+        }
+
+        /// <summary>
+        /// Send a message
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="messages"></param>
+        public void Send<T>(T[] messages)
+            where T : IMessage
+        {
+            var list = GetMessageList<T>();
+            list.AddRange(messages);
+        }
+
+        /// <summary>
+        /// Send a message
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="messages"></param>
+        public void Send<T>(IEnumerable<T> messages)
+            where T : IMessage
+        {
+            var list = GetMessageList<T>();
+            list.AddRange(list);
+        }
+
+        private List<T> GetMessageList<T>() where T : IMessage
+        {
+            if (postMessages.TryGetValue(typeof(T), out var queueObject))
+            {
+                return queueObject as List<T>;
+            }
+            else
+            {
+                var list = new List<T>();
+                postMessages.Add(typeof(T), list);
+                return list;
             }
         }
 
@@ -336,7 +398,7 @@ namespace TinyEcs
             archetypeGroup.Add(entity, ref entityIndexMap);
 
             // Raise an event when debugging is enabled
-            debugEvents.RaiseEntityAdded(entity);
+            DebugEvents.RaiseEntityAdded(entity);
             return entity;
 
             int GetNextEntityId()
@@ -371,7 +433,7 @@ namespace TinyEcs
             openEntityIds.Enqueue(entity.handle);
 
             // Raise event in debug mode
-            debugEvents.RaiseEntityRemoved(entity);
+            DebugEvents.RaiseEntityRemoved(entity);
         }
 
         /// <summary>

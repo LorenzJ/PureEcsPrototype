@@ -10,14 +10,12 @@ namespace TinyEcs
 
         const int initialSize = 64;
         private Entity[] entities;
-        private int count;
-
         private Type[] componentTypes;
         // Should find a better solution for this.
-        private volatile bool[] lockedForWriting;
-        private Type[] tagTypes;
+        private readonly bool[] lockedForWriting;
+        private readonly Type[] tagTypes;
 
-        public int Count => count;
+        public int Count { get; private set; }
 
         internal ArchetypeGroup(Type[] types)
         {
@@ -39,16 +37,16 @@ namespace TinyEcs
         internal int Add(Entity entity, ref FlatMap<Entity, int> entityIndexMap)
         {
             // Allocate more space if needed
-            if (count == entities.Length - 1)
+            if (Count == entities.Length - 1)
             {
                 ResizeAllArrays(entities.Length * 2);
             }
             // Always add after the last element (use count as index)
-            entities[count] = entity;
+            entities[Count] = entity;
             // Register the index in the world's entity index map
-            entityIndexMap[entity] = count;
+            entityIndexMap[entity] = Count;
 
-            return count++;
+            return Count++;
         }
 
         private void ResizeAllArrays(int length)
@@ -64,17 +62,17 @@ namespace TinyEcs
 
         internal void Remove(Entity entity, ref FlatMap<Entity, int> entityIndexMap)
         {
-            count--;
+            Count--;
             // Get the index of the entity that needs to be removed
             var indexToReplace = entityIndexMap[entity];
             // And replace the entity with the entity at the back of the array
-            var lastEntity = entities[count];
+            var lastEntity = entities[Count];
             entities[indexToReplace] = lastEntity;
             // Reflect the change in the component arrays
             foreach (var arrayObject in componentsMap.Values)
             {
                 var arr = arrayObject as Array;
-                arr.SetValue(arr.GetValue(count), indexToReplace); // Todo: Remove boxing somehow
+                arr.SetValue(arr.GetValue(Count), indexToReplace); // Todo: Remove boxing somehow
             }
             // Update the entityIndexMap to reflect the change
             entityIndexMap[lastEntity] = indexToReplace;
@@ -109,7 +107,7 @@ namespace TinyEcs
 
         internal void Clear()
         {
-            count = 0;
+            Count = 0;
         }
 
         internal void Move(Entity entity, ArchetypeGroup newGroup, ref FlatMap<Entity, int> entityIndexMap)
