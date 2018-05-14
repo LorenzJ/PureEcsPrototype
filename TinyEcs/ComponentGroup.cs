@@ -117,5 +117,6 @@ namespace TinyEcs
         }
 
         public RoDataStream<Entity> GetEntities() => Array2.AsRoStream(entities);
+        public RoDataStream<Entity> Entities => Array2.AsRoStream(entities);
     }
 }

@@ -9,8 +9,6 @@ namespace TinyEcs
     internal class GroupInjector
     {
         private readonly ComponentGroup componentGroup;
-        private readonly Action<int> setLength;
-        private readonly Action<RoDataStream<Entity>> setEntities;
         private readonly Action[] injectors;
         private readonly Type[] writes;
 
@@ -58,24 +56,24 @@ namespace TinyEcs
             componentGroup = world.CreateComponentGroup(includes, excludes);
             writes = writeFields.Select(GetComponentType).ToArray();
 
+            Action setLength = null;
             if (lengthField != null)
             {
-                var parameter = Expression.Parameter(typeof(int));
-                var expr = Expression.Lambda<Action<int>>(
+                setLength = Expression.Lambda<Action>(
                     Expression.Assign(
                             Expression.Field(Expression.Constant(targetObject, targetType), lengthField),
-                            parameter), parameter);
-                setLength = expr.Compile();
+                            Expression.Property(Expression.Constant(componentGroup), "Count")))
+                    .Compile();
             }
 
+            Action setEntities = null;
             if (entitiesField != null)
             {
-                var parameter = Expression.Parameter(typeof(RoDataStream<Entity>));
-                var expr = Expression.Lambda<Action<RoDataStream<Entity>>>(
+                setEntities = Expression.Lambda<Action>(
                     Expression.Assign(
-                        Expression.Field(Expression.Constant(targetObject, targetType), entitiesField),
-                        parameter), parameter);
-                setEntities = expr.Compile();
+                        Expression.Field(Expression.Constant(targetObject), entitiesField),
+                        Expression.Property(Expression.Constant(componentGroup), "Entities")))
+                    .Compile();
             }
 
             var readMethod = new Func<RoDataStream<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
@@ -84,6 +82,7 @@ namespace TinyEcs
             injectors =
                 CreateInjectors(targetObject, readFields, readMethod)
                 .Concat(CreateInjectors(targetObject, writeFields, writeMethod))
+                .Concat(new Action[] { setLength, setEntities }.Where(a => a != null))
                 .ToArray();
         }
 
@@ -104,8 +103,8 @@ namespace TinyEcs
         public void Inject()
         {
             componentGroup.UpdateStream();
-            setLength?.Invoke(componentGroup.Count);
-            setEntities?.Invoke(componentGroup.GetEntities());
+            //setLength?.Invoke(componentGroup.Count);
+            //setEntities?.Invoke(componentGroup.GetEntities());
             foreach (var injector in injectors)
             {
                 injector.Invoke();
