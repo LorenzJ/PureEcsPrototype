@@ -5,12 +5,11 @@ namespace GameGl.Core.Buffers
 {
     public class ArrayBuffer : IBuffer
     {
-        private uint handle;
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         private ArrayBuffer(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static ArrayBuffer Create(int size, BufferUsage bufferUsage = BufferUsage.StaticDraw)
@@ -36,9 +35,9 @@ namespace GameGl.Core.Buffers
             return new ArrayBufferBinding();
         }
 
-        public void Bind() => Gl.BindBuffer(BufferTarget.ArrayBuffer, handle);
+        public void Bind() => Gl.BindBuffer(BufferTarget.ArrayBuffer, Handle);
         public void Unbind() => Gl.BindBuffer(BufferTarget.ArrayBuffer, 0u);
-        public void Dispose() => Gl.DeleteBuffers(new uint[] { handle });
+        public void Dispose() => Gl.DeleteBuffers(new uint[] { Handle });
     }
 
     public struct ArrayBufferBinding : IDisposable

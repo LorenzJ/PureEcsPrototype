@@ -21,7 +21,7 @@ namespace WindowsGame
             public InputCommands Command => command;
         }
         private Dictionary<Keys, InputBinding> bindings = new Dictionary<Keys, InputBinding>();
-        private InputCommands[] commands = new InputCommands[8];
+        private readonly InputCommands[] commands = new InputCommands[8];
 
         public InputCommands[] InputCommands => commands;
 

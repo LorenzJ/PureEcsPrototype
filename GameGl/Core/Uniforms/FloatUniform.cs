@@ -4,17 +4,16 @@ namespace GameGl.Core.Uniforms
 {
     public struct FloatUniform : IUniform
     {
-        private int location;
-        public int Location => location;
+        public int Location { get; }
 
         internal FloatUniform(int location)
         {
-            this.location = location;
+            Location = location;
         }
 
         public void Set(float value)
         {
-            Gl.Uniform1(location, value);
+            Gl.Uniform1(Location, value);
         }
     }
 }

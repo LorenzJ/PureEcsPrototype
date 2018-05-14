@@ -5,13 +5,11 @@ namespace GameGl.Core.Buffers
 {
     public struct ShortElementBuffer : IBuffer
     {
-        private uint handle;
-
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         private ShortElementBuffer(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static ShortElementBuffer Create(int size, BufferUsage bufferUsage = BufferUsage.StaticDraw)
@@ -26,8 +24,8 @@ namespace GameGl.Core.Buffers
         public static ShortElementBuffer Create(ushort[] elements, BufferUsage usage = BufferUsage.StaticDraw)
             => new ShortElementBuffer(BufferUtil.Create(elements, elements.Length * sizeof(ushort), BufferTarget.ElementArrayBuffer, BufferUsage.StaticDraw));
 
-        public void Bind() => Gl.BindBuffer(BufferTarget.ElementArrayBuffer, handle);
+        public void Bind() => Gl.BindBuffer(BufferTarget.ElementArrayBuffer, Handle);
         public void Unbind() => Gl.BindBuffer(BufferTarget.ElementArrayBuffer, 0u);
-        public void Dispose() => Gl.DeleteBuffers(new uint[] { handle });
+        public void Dispose() => Gl.DeleteBuffers(new uint[] { Handle });
     }
 }

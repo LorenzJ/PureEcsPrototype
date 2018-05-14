@@ -4,17 +4,16 @@ namespace GameGl.Core.Shaders
 {
     public struct FragmentShader : IShader
     {
-        private uint handle;
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         private FragmentShader(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static FragmentShader FromSource(params string[] source)
             => new FragmentShader(ShaderUtil.CompileShader(ShaderType.FragmentShader, source));
 
-        public void Dispose() => Gl.DeleteShader(handle);
+        public void Dispose() => Gl.DeleteShader(Handle);
     }
 }

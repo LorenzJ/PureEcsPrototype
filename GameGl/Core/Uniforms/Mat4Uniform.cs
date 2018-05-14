@@ -5,20 +5,18 @@ namespace GameGl.Core.Uniforms
 {
     public struct Mat4Uniform : IUniform
     {
-        private int location;
-
-        public int Location => location;
+        public int Location { get; }
 
         public Mat4Uniform(int location)
         {
-            this.location = location;
+            Location = location;
         }
 
         public void Set(Matrix4x4 matrix)
         {
             unsafe
             {
-                Gl.UniformMatrix4(location, 1, false, &matrix.M11);
+                Gl.UniformMatrix4(Location, 1, false, &matrix.M11);
             }
         }
     }

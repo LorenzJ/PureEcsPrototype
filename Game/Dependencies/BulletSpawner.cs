@@ -9,7 +9,7 @@ namespace Game.Dependencies
 {
     public class BulletSpawner : IOnLoad
     {
-        private Archetype[] bulletTypes = new Archetype[2];
+        private readonly Archetype[] bulletTypes = new Archetype[2];
         private List<PlayerBullet> playerBullets = new List<PlayerBullet>();
         private List<EnemyBullet> enemyBullets = new List<EnemyBullet>();
         private Archetype playerBulletType;

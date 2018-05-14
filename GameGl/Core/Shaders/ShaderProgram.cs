@@ -7,12 +7,11 @@ namespace GameGl.Core.Shaders
 {
     public struct ShaderProgram : IHandle, IDisposable
     {
-        private uint handle;
-        public uint Handle { get => handle; }
+        public uint Handle { get; }
 
         public ShaderProgram(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static ShaderProgram LinkShaders(params IShader[] shaders)
@@ -36,7 +35,7 @@ namespace GameGl.Core.Shaders
 
         private int GetUniformLocation(string name)
         {
-            var location = Gl.GetUniformLocation(handle, name);
+            var location = Gl.GetUniformLocation(Handle, name);
             if (location < 0)
             {
                 throw new UniformNotFoundException(name);
@@ -46,7 +45,7 @@ namespace GameGl.Core.Shaders
         public FloatUniform GetFloatUniform(string name) => new FloatUniform(GetUniformLocation(name));
         public Mat4Uniform GetMat4Uniform(string name) => new Mat4Uniform(GetUniformLocation(name));
 
-        public void Use() => Gl.UseProgram(handle);
-        public void Dispose() => Gl.DeleteProgram(handle);
+        public void Use() => Gl.UseProgram(Handle);
+        public void Dispose() => Gl.DeleteProgram(Handle);
     }
 }

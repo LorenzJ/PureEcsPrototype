@@ -5,12 +5,11 @@ namespace GameGl.Core.Textures
 {
     public class Texture2d : ITexture
     {
-        private uint handle;
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         internal Texture2d(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static Texture2d Create()
@@ -69,12 +68,12 @@ namespace GameGl.Core.Textures
 
         public void Bind()
         {
-            Gl.BindTexture(TextureTarget.Texture2d, handle);
+            Gl.BindTexture(TextureTarget.Texture2d, Handle);
         }
 
         public void Dispose()
         {
-            Gl.DeleteTextures(new uint[] { handle });
+            Gl.DeleteTextures(new uint[] { Handle });
         }
 
         public void Unbind()

@@ -7,18 +7,17 @@ namespace GameGl.Core
 {
     public struct VertexArray : IBindable, IHandle, IDisposable
     {
-        private uint handle;
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         internal VertexArray(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
-        public void Bind() => Gl.BindVertexArray(handle);
+        public void Bind() => Gl.BindVertexArray(Handle);
         public void Unbind() => Gl.BindVertexArray(0u);
 
-        public void Dispose() => Gl.DeleteVertexArrays(new uint[] { handle });
+        public void Dispose() => Gl.DeleteVertexArrays(new uint[] { Handle });
     }
 
     public class VertexArrayBuilder

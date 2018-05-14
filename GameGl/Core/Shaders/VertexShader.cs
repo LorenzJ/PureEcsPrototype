@@ -4,17 +4,16 @@ namespace GameGl.Core.Shaders
 {
     public struct VertexShader : IShader
     {
-        private uint handle;
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         private VertexShader(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static VertexShader FromSource(params string[] source)
             => new VertexShader(ShaderUtil.CompileShader(ShaderType.VertexShader, source));
 
-        public void Dispose() => Gl.DeleteShader(handle);
+        public void Dispose() => Gl.DeleteShader(Handle);
     }
 }

@@ -6,18 +6,16 @@ namespace GameGl.Core
 {
     public struct Framebuffer : IBindable, IHandle, IDisposable
     {
-        private uint handle;
-
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         internal Framebuffer(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public void Bind()
         {
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, handle);
+            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, Handle);
         }
 
         public void Unbind()
@@ -27,7 +25,7 @@ namespace GameGl.Core
 
         public void Dispose()
         {
-            Gl.DeleteFramebuffers(new uint[] { handle });
+            Gl.DeleteFramebuffers(new uint[] { Handle });
         }
     }
 

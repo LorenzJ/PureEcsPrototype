@@ -5,12 +5,11 @@ namespace GameGl.Core
 {
     public struct Renderbuffer : IBindable, IHandle, IDisposable
     {
-        private uint handle;
-        public uint Handle => handle;
+        public uint Handle { get; }
 
         public Renderbuffer(uint handle)
         {
-            this.handle = handle;
+            Handle = handle;
         }
 
         public static Renderbuffer Create(InternalFormat format, int width, int height)
@@ -24,12 +23,12 @@ namespace GameGl.Core
 
         public void Bind()
         {
-            Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, handle);
+            Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, Handle);
         }
 
         public void Dispose()
         {
-            Gl.DeleteRenderbuffers(new uint[] { handle });
+            Gl.DeleteRenderbuffers(new uint[] { Handle });
         }
 
         public void Unbind()
