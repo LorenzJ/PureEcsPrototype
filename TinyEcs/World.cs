@@ -530,7 +530,6 @@ namespace TinyEcs
         {
             var archetypeGroups = GetArchetypeGroups(includes, excludes).ToArray();
             var componentGroup = new ComponentGroup(archetypeGroups, includes, excludes);
-            componentGroup.UpdateStream();
             componentGroups.Add(componentGroup);
             return componentGroup;
         }
