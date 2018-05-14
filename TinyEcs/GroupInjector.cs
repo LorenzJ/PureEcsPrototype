@@ -41,12 +41,19 @@ namespace TinyEcs
                 .Where(fi => fi.GetCustomAttribute(typeof(ExcludeAttribute)) != null);
             var includedTagFields = tagFields.Except(excludedTagFields);
 
-            
             var includes = readFields.Select(GetComponentType)
                 .Concat(writeFields.Select(GetComponentType))
                 .Concat(includedTagFields.Select(fi => fi.FieldType))
                 .ToArray();
             var excludes = excludedTagFields.Select(fi => fi.FieldType).ToArray();
+
+            var otherFields = new FieldInfo[] { lengthField, entitiesField }.Where(fi => fi != null);
+
+            var unknownFields = fields.Except(writeFields).Except(readFields).Except(tagFields).Except(otherFields);
+            if (unknownFields.Count() > 0)
+            {
+                throw new UnknownFieldsException(unknownFields);
+            }
 
             componentGroup = world.CreateComponentGroup(includes, excludes);
             writes = writeFields.Select(GetComponentType).ToArray();
@@ -82,22 +89,16 @@ namespace TinyEcs
 
         private static Type GetComponentType(FieldInfo fi) => fi.FieldType.GetGenericArguments()[0];
 
-        private List<Action> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
+        private IEnumerable<Action> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
         {
-            var injectors = new List<Action>();
-            foreach (var field in fields)
+            return fields.Select(field =>
             {
-                var type = GetComponentType(field);
-                var method = methodInfo.MakeGenericMethod(type);
-
-                var expr = Expression.Lambda<Action>(
+                var method = methodInfo.MakeGenericMethod(GetComponentType(field));
+                return Expression.Lambda<Action>(
                     Expression.Assign(
-                        Expression.Field(Expression.Constant(targetObject, targetObject.GetType()), field),
-                        Expression.Call(Expression.Constant(componentGroup), method)));
-
-                injectors.Add(expr.Compile());
-            }
-            return injectors;
+                        Expression.Field(Expression.Constant(targetObject), field),
+                        Expression.Call(Expression.Constant(componentGroup), method))).Compile();
+            });
         }
 
         public void Inject()
