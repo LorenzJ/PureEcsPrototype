@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -69,43 +68,9 @@ namespace TinyEcs
         private static Archetype defaultArchetype;
 
         /// <summary>
-        /// Helper class for debugging.
-        /// </summary>
-        public class DebugEvents_
-        {
-            private readonly World world;
-
-            internal DebugEvents_(World world)
-            {
-                this.world = world;
-            }
-
-            /// <summary>
-            /// Event called when an entity is added and the DEBUG symbol is defined.
-            /// </summary>
-            public event EventHandler<Entity> EntityAdded;
-            /// <summary>
-            /// Event called when an entity is removed and the DEBUG symbol is defined.
-            /// </summary>
-            public event EventHandler<Entity> EntityRemoved;
-
-            [Conditional("DEBUG")]
-            internal void RaiseEntityAdded(Entity entity)
-            {
-                EntityAdded?.Invoke(world, entity);
-            }
-
-            [Conditional("DEBUG")]
-            internal void RaiseEntityRemoved(Entity entity)
-            {
-                EntityRemoved?.Invoke(world, entity);
-            }
-
-        }
-        /// <summary>
         /// DebugEvents instance for this world.
         /// </summary>
-        public DebugEvents_ DebugEvents { get; private set; }
+        public DebugEvents DebugEvents { get; private set; }
 
         static World()
         {
@@ -138,7 +103,8 @@ namespace TinyEcs
             postActions = new ConcurrentQueue<Action>();
             postMessages = new Dictionary<Type, object>();
 
-            nextArchetypeId = 1;
+            nextArchetypeId = 0;
+            CreateArchetype(new Type[] { });
             nextEntityId = 0;
         }
 
@@ -221,7 +187,7 @@ namespace TinyEcs
             }
 
             // Create DebugEvents
-            world.DebugEvents = new DebugEvents_(world);
+            world.DebugEvents = new DebugEvents(world);
             return world;
         }
         #endregion
