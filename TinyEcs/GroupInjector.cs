@@ -9,7 +9,7 @@ namespace TinyEcs
     internal class GroupInjector
     {
         private readonly ComponentGroup componentGroup;
-        private readonly Action[] injectors;
+        private readonly Action injector;
         private readonly Type[] writes;
 
         private struct DummyComponent : IComponent { }
@@ -20,7 +20,9 @@ namespace TinyEcs
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
 
             var fields = targetType.GetFields(bindingFlags);
-            var lengthField = targetType.GetField("Length", bindingFlags);
+            var lengthField = fields
+                .Where(fi => fi.FieldType == typeof(int))
+                .SingleOrDefault();
             var entitiesField = fields
                 .Where(fi => fi.FieldType == typeof(RoDataStream<Entity>))
                 .SingleOrDefault();
@@ -56,59 +58,50 @@ namespace TinyEcs
             componentGroup = world.CreateComponentGroup(includes, excludes);
             writes = writeFields.Select(GetComponentType).ToArray();
 
-            Action setLength = null;
+            var expressions = new List<Expression>();
             if (lengthField != null)
             {
-                setLength = Expression.Lambda<Action>(
-                    Expression.Assign(
-                            Expression.Field(Expression.Constant(targetObject, targetType), lengthField),
-                            Expression.Property(Expression.Constant(componentGroup), "Count")))
-                    .Compile();
+                var expr = Expression.Assign(
+                    Expression.Field(Expression.Constant(targetObject, targetType), lengthField),
+                    Expression.Property(Expression.Constant(componentGroup), "Count"));
+                expressions.Add(expr);
             }
-
-            Action setEntities = null;
             if (entitiesField != null)
             {
-                setEntities = Expression.Lambda<Action>(
-                    Expression.Assign(
-                        Expression.Field(Expression.Constant(targetObject), entitiesField),
-                        Expression.Property(Expression.Constant(componentGroup), "Entities")))
-                    .Compile();
+                var expr = Expression.Assign(
+                    Expression.Field(Expression.Constant(targetObject), entitiesField),
+                    Expression.Property(Expression.Constant(componentGroup), "Entities"));
+                expressions.Add(expr);
             }
 
             var readMethod = new Func<RoDataStream<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
             var writeMethod = new Func<RwDataStream<DummyComponent>>(componentGroup.GetWrite<DummyComponent>).Method.GetGenericMethodDefinition();
-           
-            injectors =
+
+            var injectorBody =
                 CreateInjectors(targetObject, readFields, readMethod)
                 .Concat(CreateInjectors(targetObject, writeFields, writeMethod))
-                .Concat(new Action[] { setLength, setEntities }.Where(a => a != null))
-                .ToArray();
+                .Concat(expressions);
+
+            injector = Expression.Lambda<Action>(Expression.Block(injectorBody)).Compile();
         }
 
         private static Type GetComponentType(FieldInfo fi) => fi.FieldType.GetGenericArguments()[0];
 
-        private IEnumerable<Action> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
+        private IEnumerable<Expression> CreateInjectors(object targetObject, FieldInfo[] fields, MethodInfo methodInfo)
         {
             return fields.Select(field =>
             {
                 var method = methodInfo.MakeGenericMethod(GetComponentType(field));
-                return Expression.Lambda<Action>(
-                    Expression.Assign(
-                        Expression.Field(Expression.Constant(targetObject), field),
-                        Expression.Call(Expression.Constant(componentGroup), method))).Compile();
+                return Expression.Assign(
+                    Expression.Field(Expression.Constant(targetObject), field),
+                    Expression.Call(Expression.Constant(componentGroup), method));
             });
         }
 
         public void Inject()
         {
             componentGroup.UpdateStream();
-            //setLength?.Invoke(componentGroup.Count);
-            //setEntities?.Invoke(componentGroup.GetEntities());
-            foreach (var injector in injectors)
-            {
-                injector.Invoke();
-            }
+            injector();
         }
 
         public void WriteAndUnlock() => componentGroup.WriteAndUnlock(writes);
