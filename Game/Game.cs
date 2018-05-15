@@ -4,6 +4,7 @@ using Game.Components.Player;
 using Game.Components.Transform;
 using Game.Components.Utilities;
 using Game.Dependencies;
+using System;
 using System.Numerics;
 using TinyEcs;
 
@@ -11,34 +12,35 @@ namespace Game
 {
     public class Game
     {
-        private World world;
         private ShipFactory shipFactory;
-        private float time;
 
-        public World World { get => world; }
-        public float Time { get => time; set => time = value; }
+        public World World { get; }
+        public float Time { get; set; }
 
         public Game()
         {
-            world = World.Create();
-            shipFactory = new ShipFactory(world);
+            World = World.Create();
+            shipFactory = new ShipFactory(World);
         }
 
         public void Init()
         {
             shipFactory.CreateAndAddPlayer(0);
-            shipFactory.CreateAndAddEnemy(new Position(new Vector2(0, 1.4f)));
+            for (var i = 1; i < 200; i++)
+            {
+                shipFactory.CreateAndAddEnemy(new Position(new Vector2((float)Math.Sin(i), i + (float)Math.Cos(i))));
+            }
         }
 
         public void Update(float deltaTime)
         {
-            time += deltaTime;
-            world.Post(new UpdateMessage(deltaTime));
-            world.Post(new LateUpdateMessage(deltaTime));
-            world.Post(new DetectCollisionsMessage());
-            world.Post(new RenderMessage());
-            world.GetDependency<DeadEntityList>().Commit(world);
-            world.GetDependency<BulletSpawner>().Commit(world);
+            Time += deltaTime;
+            World.Post(new UpdateMessage(deltaTime));
+            World.Post(new LateUpdateMessage(deltaTime));
+            World.Post(new DetectCollisionsMessage());
+            World.Post(new RenderMessage());
+            World.GetDependency<DeadEntityList>().Commit(World);
+            World.GetDependency<BulletSpawner>().Commit(World);
         }
     }
 }

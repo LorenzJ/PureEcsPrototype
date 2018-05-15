@@ -18,10 +18,12 @@ namespace TinyEcs
         /// <summary>
         /// Event called when an entity is added and the DEBUG symbol is defined.
         /// </summary>
+        /// <remarks>Sender is <see cref="World"/></remarks>
         public event EventHandler<Entity> EntityAdded;
         /// <summary>
         /// Event called when an entity is removed and the DEBUG symbol is defined.
         /// </summary>
+        /// <remarks>Sender is <see cref="World"/></remarks>
         public event EventHandler<Entity> EntityRemoved;
 
         [Conditional("DEBUG")]

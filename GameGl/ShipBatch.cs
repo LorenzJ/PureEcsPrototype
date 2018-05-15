@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Game.Components.Transform;
 using GameGl.Core;
 using GameGl.Core.Attributes;
@@ -39,7 +38,7 @@ namespace GameGl
             var timeUniform = program.GetFloatUniform("uTime");
             var scaleUniform = program.GetFloatUniform("uScale");
 
-            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 128, BufferUsage.DynamicDraw);
+            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 256, BufferUsage.DynamicDraw);
             var vbo = Triangle.VertexBuffer;
 
             var builder = new VertexArrayBuilder();

@@ -20,7 +20,7 @@ namespace Game
             this.world = world;
             shipType = world.CreateArchetype(typeof(ShipTag), typeof(Position), typeof(Heading), typeof(Circle));
             playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag), typeof(Input), typeof(WeaponState), typeof(PlayerInfo));
-            enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag), typeof(Health), typeof(EnemyInfo));
+            enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag), typeof(Health), typeof(EnemyInfo), typeof(Enemy1Weapon));
         }
 
         public Entity CreateAndAddPlayer(int id)
@@ -43,6 +43,7 @@ namespace Game
             world.Ref<Heading>(enemy) = new Heading(new Vector2(0f, -.4f));
             world.Ref<Health>(enemy) = new Health(5f);
             world.Ref<EnemyInfo>(enemy) = new EnemyInfo { Value = 100 };
+            world.Ref<Enemy1Weapon>(enemy) = default;
             return enemy;
         }
 

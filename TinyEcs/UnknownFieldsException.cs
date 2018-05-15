@@ -6,19 +6,19 @@ using System.Text;
 
 namespace TinyEcs
 {
+    /// <summary>
+    /// Thrown when a component <see cref="GroupAttribute">group</see> defined in a <see cref="ComponentSystem{T}"/> contains
+    /// types that aren't components or tags
+    /// </summary>
     [Serializable]
-    internal class UnknownFieldsException : Exception
+    public class UnknownFieldsException : Exception
     {
-        private IEnumerable<FieldInfo> unknownFields;
+        private readonly IEnumerable<FieldInfo> unknownFields;
 
-        public UnknownFieldsException()
-        {
-        }
-
-        public UnknownFieldsException(string message) : base(message)
-        {
-        }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="unknownFields">Fields with an unknown type</param>
         public UnknownFieldsException(IEnumerable<FieldInfo> unknownFields)
             : base (CreateMessage(unknownFields))
         {
@@ -34,10 +34,7 @@ namespace TinyEcs
             return sb.ToString();
         }
 
-        public UnknownFieldsException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
+        /// <inheritdoc/>
         protected UnknownFieldsException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }

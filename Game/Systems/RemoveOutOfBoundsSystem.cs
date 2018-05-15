@@ -9,7 +9,7 @@ using TinyEcs;
 
 namespace Game.Systems
 {
-    public class RemoveOutOfBoundsSystem : ComponentSystem<UpdateMessage>
+    public class RemoveOutOfBoundsSystem : ComponentSystem<LateUpdateMessage>
     {
         public class Bullets
         {
@@ -29,7 +29,7 @@ namespace Game.Systems
             deaths = deadEntityList;
         }
 
-        protected override void Execute(World world, UpdateMessage message)
+        protected override void Execute(World world, LateUpdateMessage message)
         {
             var removeBullets = Task.Run(() =>
             {
