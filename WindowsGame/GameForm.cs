@@ -1,11 +1,10 @@
 ﻿using Game;
-using Game.Dependencies;
 using GameGl;
 using OpenGL;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Numerics;
 using System.Windows.Forms;
 using TinyEcs;
@@ -19,6 +18,7 @@ namespace WindowsGame
         private double currentTime;
         private double accumulatedTime;
         private double timeStep = 1 / 120.0;
+        private double timeScale = 1D;
         private Renderer renderer;
         private KeyBinds keyBinds;
         private Vector2[] directions = new Vector2[8];
@@ -30,6 +30,11 @@ namespace WindowsGame
         public GameForm()
         {
             InitializeComponent();
+
+            timestepInput.Text = timeStep.ToString();
+            timescaleInput.Text = timeScale.ToString();
+            timescaleInput.ValidatingType = typeof(double);
+            timestepInput.ValidatingType = typeof(double);
         }
 
         private void GlControl1_ContextCreated(object sender, GlControlEventArgs e)
@@ -71,7 +76,7 @@ namespace WindowsGame
             while (accumulatedTime > 0)
             {
                 accumulatedTime -= timeStep;
-                game.Update((float)timeStep);
+                game.Update((float)(timeStep * timeScale));
             }
             frametimeLabel.Text = $"{deltaTime:0.0000}s/frame";
             framerateLabel.Text = $"{1.0 / deltaTime:000.00}fps";
@@ -183,6 +188,34 @@ namespace WindowsGame
             foreach (var field in fields)
             {
                 fieldList.Items.Add($"{field.Name}: {field.GetValue(component)}");
+            }
+        }
+
+        private void TimestepInput_Validated(object sender, EventArgs e)
+        {
+            timeStep = Double.Parse(timestepInput.Text, CultureInfo.InvariantCulture);
+        }
+
+        private void TimescaleInput_Validated(object sender, EventArgs e)
+        {
+            timeScale = Double.Parse(timescaleInput.Text, CultureInfo.InvariantCulture);
+        }
+
+        private void TimescaleInput_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var value = Double.Parse(timestepInput.Text, CultureInfo.InvariantCulture);
+            if (value == 0)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void TimestepInput_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var value = Double.Parse(timestepInput.Text, CultureInfo.InvariantCulture);
+            if (value == 0)
+            {
+                e.Cancel = true;
             }
         }
     }

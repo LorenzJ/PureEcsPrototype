@@ -125,7 +125,7 @@
             this.entityList.FormattingEnabled = true;
             this.entityList.Location = new System.Drawing.Point(4, 4);
             this.entityList.Name = "entityList";
-            this.entityList.Size = new System.Drawing.Size(155, 239);
+            this.entityList.Size = new System.Drawing.Size(156, 239);
             this.entityList.TabIndex = 3;
             this.entityList.SelectedValueChanged += new System.EventHandler(this.EntityList_SelectedValueChanged);
             // 
@@ -134,9 +134,9 @@
             this.componentList.DisplayMember = "Name";
             this.componentList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.componentList.FormattingEnabled = true;
-            this.componentList.Location = new System.Drawing.Point(166, 4);
+            this.componentList.Location = new System.Drawing.Point(167, 4);
             this.componentList.Name = "componentList";
-            this.componentList.Size = new System.Drawing.Size(155, 239);
+            this.componentList.Size = new System.Drawing.Size(156, 239);
             this.componentList.TabIndex = 4;
             this.componentList.SelectedValueChanged += new System.EventHandler(this.ComponentList_SelectedValueChanged);
             // 
@@ -144,10 +144,10 @@
             // 
             this.fieldList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fieldList.FormattingEnabled = true;
-            this.fieldList.Location = new System.Drawing.Point(328, 4);
+            this.fieldList.Location = new System.Drawing.Point(330, 4);
             this.fieldList.Name = "fieldList";
             this.fieldList.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.fieldList.Size = new System.Drawing.Size(158, 239);
+            this.fieldList.Size = new System.Drawing.Size(156, 239);
             this.fieldList.TabIndex = 5;
             // 
             // pauseResumeButton
@@ -260,8 +260,12 @@
             this.timestepInput.Location = new System.Drawing.Point(81, 74);
             this.timestepInput.Mask = "0.0000";
             this.timestepInput.Name = "timestepInput";
-            this.timestepInput.Size = new System.Drawing.Size(100, 20);
+            this.timestepInput.PromptChar = '0';
+            this.timestepInput.Size = new System.Drawing.Size(46, 20);
             this.timestepInput.TabIndex = 8;
+            this.timestepInput.TextMaskFormat = System.Windows.Forms.MaskFormat.IncludePromptAndLiterals;
+            this.timestepInput.Validating += new System.ComponentModel.CancelEventHandler(this.TimestepInput_Validating);
+            this.timestepInput.Validated += new System.EventHandler(this.TimestepInput_Validated);
             // 
             // timescaleInput
             // 
@@ -269,8 +273,12 @@
             this.timescaleInput.Location = new System.Drawing.Point(81, 103);
             this.timescaleInput.Mask = "0.0000";
             this.timescaleInput.Name = "timescaleInput";
-            this.timescaleInput.Size = new System.Drawing.Size(100, 20);
+            this.timescaleInput.PromptChar = '0';
+            this.timescaleInput.Size = new System.Drawing.Size(46, 20);
             this.timescaleInput.TabIndex = 9;
+            this.timescaleInput.TextMaskFormat = System.Windows.Forms.MaskFormat.IncludePromptAndLiterals;
+            this.timescaleInput.Validating += new System.ComponentModel.CancelEventHandler(this.TimescaleInput_Validating);
+            this.timescaleInput.Validated += new System.EventHandler(this.TimescaleInput_Validated);
             // 
             // GameForm
             // 
