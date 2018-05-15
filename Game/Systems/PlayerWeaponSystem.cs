@@ -1,6 +1,7 @@
 ﻿using Game.Components;
 using Game.Components.Player;
 using Game.Components.Transform;
+using Game.Components.Utilities;
 using Game.Dependencies;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace Game.Systems
         public class Data
         {
             public int Length;
+            public RoDataStream<Entity> entities;
             public RoDataStream<Input> Inputs;
             public RoDataStream<Position> Positions;
             public RwDataStream<WeaponState> Weapons;
@@ -40,14 +42,23 @@ namespace Game.Systems
                 if ((data.Inputs[i].Commands & InputCommands.Fire) > 0 && data.Weapons[i].Timeout <= 0)
                 {
                     bulletSpawner.Spawn(
-                        new BulletSpawner.PlayerBullet(data.Positions[i], 
-                        new Heading(new Vector2(0, 1)), data.Weapons[i].Power));
+                        new BulletSpawner.PlayerBullet(
+                            data.Positions[i],
+                            new Heading(new Vector2(0, 1)),
+                            new ParentEntity(data.entities[i]),
+                            data.Weapons[i].Power));
                     bulletSpawner.Spawn(
-                        new BulletSpawner.PlayerBullet(data.Positions[i],
-                        new Heading(Vector2.Normalize(new Vector2(+.5f, 1))), data.Weapons[i].Power));
+                        new BulletSpawner.PlayerBullet(
+                            data.Positions[i],
+                            new Heading(Vector2.Normalize(new Vector2(.2f, 1))),
+                            new ParentEntity(data.entities[i]),
+                            data.Weapons[i].Power));
                     bulletSpawner.Spawn(
-                        new BulletSpawner.PlayerBullet(data.Positions[i],
-                        new Heading(Vector2.Normalize(new Vector2(-.5f, 1))), data.Weapons[i].Power));
+                        new BulletSpawner.PlayerBullet(
+                            data.Positions[i],
+                            new Heading(Vector2.Normalize(new Vector2(-.2f, 1))),
+                            new ParentEntity(data.entities[i]),
+                            data.Weapons[i].Power));
                     data.Weapons[i].Timeout = data.Weapons[i].Frequency;
                 }
             }

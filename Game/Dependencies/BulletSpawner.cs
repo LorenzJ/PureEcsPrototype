@@ -4,6 +4,7 @@ using TinyEcs;
 using System.Collections.Generic;
 using System;
 using Game.Components.Colliders;
+using Game.Components.Utilities;
 
 namespace Game.Dependencies
 {
@@ -17,15 +18,17 @@ namespace Game.Dependencies
 
         public struct PlayerBullet
         {
-            public Position Position;
-            public Heading Heading;
-            public float Power;
+            public readonly Position Position;
+            public readonly Heading Heading;
+            public readonly ParentEntity Parent;
+            public readonly float Power;
 
-            public PlayerBullet(Position position, Heading heading, float power)
+            public PlayerBullet(Position position, Heading heading, ParentEntity parent, float power)
             {
                 Position = position;
                 Heading = heading;
                 Power = power;
+                Parent = parent;
             }
         }
 
@@ -43,8 +46,8 @@ namespace Game.Dependencies
 
         public void OnLoad(World world)
         {
-            var bullet = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(Components.Colliders.Circle), typeof(BulletTag));
-            playerBulletType = world.CreateArchetype(bullet, typeof(PlayerTag), typeof(DamageSource));
+            var bullet = world.CreateArchetype(typeof(Position), typeof(Heading), typeof(Circle), typeof(BulletTag));
+            playerBulletType = world.CreateArchetype(bullet, typeof(PlayerTag), typeof(DamageSource), typeof(ParentEntity));
             enemyBulletType = world.CreateArchetype(bullet, typeof(EnemyTag));
         }
 
@@ -73,6 +76,7 @@ namespace Game.Dependencies
                 world.Ref<Heading>(newBullet) = bullet.Heading;
                 world.Ref<DamageSource>(newBullet).Value = bullet.Power;
                 world.Ref<Circle>(newBullet) = new Circle(default, 0.05f);
+                world.Ref<ParentEntity>(newBullet) = bullet.Parent;
             }
             foreach (var bullet in enemyBullets)
             {

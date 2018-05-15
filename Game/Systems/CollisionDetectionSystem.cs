@@ -1,7 +1,9 @@
 ﻿using Game.Components;
 using Game.Components.Colliders;
+using Game.Components.Enemy;
 using Game.Components.Player;
 using Game.Components.Transform;
+using Game.Components.Utilities;
 using Game.Dependencies;
 using System.Collections.Generic;
 using System.Numerics;
@@ -50,10 +52,15 @@ namespace Game.Systems
             {
                 list.Add(bullet);
                 // Could be thread unsafe if other systems were to modify health as well
-                world.Ref<Health>(enemy).Value -= world.Ref<DamageSource>(bullet).Value;
-                if (world.Ref<Health>(enemy).Value <= 0)
+                if (world.Ref<Health>(enemy).Value > 0)
                 {
-                    list.Add(enemy);
+                    world.Ref<Health>(enemy).Value -= world.Ref<DamageSource>(bullet).Value;
+                    if (world.Ref<Health>(enemy).Value <= 0)
+                    {
+                        list.Add(enemy);
+                        var player = world.Ref<ParentEntity>(bullet).Entity;
+                        world.Ref<PlayerInfo>(player).Score += world.Ref<EnemyInfo>(enemy).Value;
+                    }
                 }
             }
             deadEntityList.AddRange(list);

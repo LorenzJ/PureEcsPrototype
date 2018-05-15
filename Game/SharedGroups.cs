@@ -1,6 +1,7 @@
 ﻿using Game.Components;
 using Game.Components.Colliders;
 using Game.Components.Transform;
+using Game.Components.Utilities;
 using TinyEcs;
 
 namespace Game
@@ -21,6 +22,7 @@ namespace Game
         public RoDataStream<Entity> Entities;
         public RoDataStream<Position> Positions;
         public RoDataStream<Circle> Colliders;
+        public RoDataStream<ParentEntity> Parents;
         public PlayerTag PlayerTag;
         public BulletTag BulletTag;
     }

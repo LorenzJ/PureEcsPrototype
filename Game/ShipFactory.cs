@@ -1,5 +1,6 @@
 ﻿using Game.Components;
 using Game.Components.Colliders;
+using Game.Components.Enemy;
 using Game.Components.Player;
 using Game.Components.Transform;
 using System.Numerics;
@@ -19,7 +20,7 @@ namespace Game
             this.world = world;
             shipType = world.CreateArchetype(typeof(ShipTag), typeof(Position), typeof(Heading), typeof(Circle));
             playerShipType = world.CreateArchetype(shipType, typeof(PlayerTag), typeof(Input), typeof(WeaponState), typeof(PlayerInfo));
-            enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag), typeof(Health));
+            enemyShipType = world.CreateArchetype(shipType, typeof(EnemyTag), typeof(Health), typeof(EnemyInfo));
         }
 
         public Entity CreateAndAddPlayer(int id)
@@ -41,6 +42,7 @@ namespace Game
             world.Ref<Circle>(enemy) = new Circle(default, .08f);
             world.Ref<Heading>(enemy) = new Heading(new Vector2(0f, -.4f));
             world.Ref<Health>(enemy) = new Health(5f);
+            world.Ref<EnemyInfo>(enemy) = new EnemyInfo { Value = 100 };
             return enemy;
         }
 
