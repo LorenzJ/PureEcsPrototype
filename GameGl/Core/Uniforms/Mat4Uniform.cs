@@ -1,4 +1,5 @@
-﻿using OpenGL;
+﻿using GameGl.Core.Shaders;
+using OpenGL;
 using System.Numerics;
 
 namespace GameGl.Core.Uniforms
@@ -19,5 +20,11 @@ namespace GameGl.Core.Uniforms
                 Gl.UniformMatrix4(Location, 1, false, &matrix.M11);
             }
         }
+    }
+
+    public static class Mat4UniformHelper
+    {
+        public static Mat4Uniform GetMat4Uniform(this ShaderProgram program, string name)
+            => new Mat4Uniform(program.GetUniformLocation(name));
     }
 }

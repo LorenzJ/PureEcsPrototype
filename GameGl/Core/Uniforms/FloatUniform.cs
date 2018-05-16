@@ -1,4 +1,5 @@
-﻿using OpenGL;
+﻿using GameGl.Core.Shaders;
+using OpenGL;
 
 namespace GameGl.Core.Uniforms
 {
@@ -16,4 +17,12 @@ namespace GameGl.Core.Uniforms
             Gl.Uniform1(Location, value);
         }
     }
+
+    public static class FloatUniformUtil
+    {
+        public static FloatUniform GetFloatUniform(this ShaderProgram program, string name)
+            => new FloatUniform(program.GetUniformLocation(name));
+    }
+
+
 }
