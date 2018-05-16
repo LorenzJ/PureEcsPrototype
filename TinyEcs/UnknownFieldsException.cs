@@ -13,8 +13,7 @@ namespace TinyEcs
     [Serializable]
     public class UnknownFieldsException : Exception
     {
-        private readonly IEnumerable<FieldInfo> unknownFields;
-
+        
         /// <summary>
         /// 
         /// </summary>
