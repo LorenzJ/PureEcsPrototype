@@ -23,11 +23,9 @@ namespace GameGl.Core.Buffers
 
         public void BufferSubData(int offset, int size, object data)
             => Gl.BufferSubData(BufferTarget.ArrayBuffer, new IntPtr(offset), (uint)size, data);
-            //=> Gl.NamedBufferSubData(handle, new IntPtr(offset), (uint)size, data);
 
         public void BufferSubData(int offset, int size, IntPtr ptr)
             => Gl.BufferSubData(BufferTarget.ArrayBuffer, new IntPtr(offset), (uint)size, ptr);
-            //=> Gl.NamedBufferSubData(handle, new IntPtr(offset), (uint)size, ptr);
 
         public ArrayBufferBinding GetBinding()
         {

@@ -2,12 +2,11 @@
 {
     public struct FloatAttribute : IAttribute
     {
-        private uint index;
-        public uint Index => index;
+        public uint Index { get; }
 
         public FloatAttribute(uint index)
         {
-            this.index = index;
+            Index = index;
         }
     }
 }

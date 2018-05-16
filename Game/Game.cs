@@ -26,7 +26,7 @@ namespace Game
         public void Init()
         {
             shipFactory.CreateAndAddPlayer(0);
-            for (var i = 1; i < 200; i++)
+            for (var i = 1; i < 20; i++)
             {
                 shipFactory.CreateAndAddEnemy(new Position(new Vector2((float)Math.Sin(i), i + (float)Math.Cos(i))));
             }
