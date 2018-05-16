@@ -55,10 +55,10 @@ namespace TinyEcs
                 throw new UnknownFieldsException(unknownFields);
             }
 
-            componentGroup = world.CreateComponentGroup(includes, excludes);
+            componentGroup = world.CreateComponentGroup(includes, excludes, entitiesField != null);
             writes = writeFields.Select(GetComponentType).ToArray();
 
-            var expressions = new List<Expression>();
+            var expressions = new System.Collections.Generic.List<Expression>();
             if (lengthField != null)
             {
                 var expr = Expression.Assign(

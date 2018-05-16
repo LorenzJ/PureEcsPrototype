@@ -13,14 +13,19 @@ namespace TinyEcs
         private readonly Type[] tagTypes;
         internal Type[] includes;
         internal Type[] excludes;
+        private readonly bool includeEntities;
 
         public int Count { get; private set; }
 
-        internal ComponentGroup(ArchetypeGroup[] archetypeGroups, Type[] includes, Type[] excludes)
+        internal ComponentGroup(ArchetypeGroup[] archetypeGroups, Type[] includes, Type[] excludes, bool includeEntities)
         {
             this.includes = includes;
             this.excludes = excludes;
-            entities = new Array2<Entity>(1);
+            this.includeEntities = includeEntities;
+            if (includeEntities)
+            {
+                entities = new Array2<Entity>(1);
+            }
             this.archetypeGroups = archetypeGroups;
             componentTypes = includes.Where(t => t.GetInterfaces().Contains(typeof(IComponent))).ToArray();
             tagTypes = includes.Where(t => t.GetInterfaces().Contains(typeof(ITag))).ToArray();
@@ -42,7 +47,10 @@ namespace TinyEcs
             Count = archetypeGroups.Select(a => a.Count).Aggregate((a, b) => a + b);
 
             // Create the arrays
-            entities.Resize(Count);
+            if (includeEntities)
+            {
+                entities.Resize(Count);
+            }
             foreach (var type in componentTypes)
             {
                 var arr = componentsMap[type];
@@ -58,7 +66,10 @@ namespace TinyEcs
                     // Copy the archetype group's component to the streams
                     Array.Copy(archetypeGroup.GetComponents(type), 0, componentsMap[type].Data, index, archetypeGroup.Count);
                 }
-                Array.Copy(archetypeGroup.GetEntities(), 0, entities.Data, index, archetypeGroup.Count);
+                if (includeEntities)
+                {
+                    Array.Copy(archetypeGroup.GetEntities(), 0, entities.Data, index, archetypeGroup.Count);
+                }
                 // Advance the streams
                 index += archetypeGroup.Count;
             }
@@ -115,8 +126,7 @@ namespace TinyEcs
                 index += archetypeGroup.Count;
             }
         }
-
-        public RoDataStream<Entity> GetEntities() => Array2.AsRoStream(entities);
+        
         public RoDataStream<Entity> Entities => Array2.AsRoStream(entities);
     }
 }

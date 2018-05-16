@@ -482,20 +482,10 @@ namespace TinyEcs
         }
         #endregion
 
-        /// <summary>
-        /// Create a new component group.
-        /// </summary>
-        /// <param name="includes">Component types included in the group.</param>
-        /// <returns>A component group with components specified by types.</returns>
-        internal ComponentGroup CreateComponentGroup(params Type[] includes)
-        {
-            return CreateComponentGroup(includes, new Type[] { });
-        }
-
-        internal ComponentGroup CreateComponentGroup(Type[] includes, Type[] excludes)
+        internal ComponentGroup CreateComponentGroup(Type[] includes, Type[] excludes, bool includeEntities)
         {
             var archetypeGroups = GetArchetypeGroups(includes, excludes).ToArray();
-            var componentGroup = new ComponentGroup(archetypeGroups, includes, excludes);
+            var componentGroup = new ComponentGroup(archetypeGroups, includes, excludes, includeEntities);
             componentGroups.Add(componentGroup);
             return componentGroup;
         }
@@ -503,24 +493,12 @@ namespace TinyEcs
 
         private IEnumerable<ArchetypeGroup> GetArchetypeGroups(Type[] includes, Type[] excludes)
         {
-            var includedGroups = new List<ArchetypeGroup>();
-            for (var i = 1; i < nextArchetypeId; i++)
-            {
-                // Check if all the required types can be found in the archetype group
-                if (includes.All(t => archetypeMap.Get(i).Contains(t)))
-                {
-                    // If so, add it to the list
-                    includedGroups.Add(archetypeGroupMap.Get(i));
-                }
-            }
-            var excludedGroups = new List<ArchetypeGroup>();
-            for (var i = 1; i < nextArchetypeId; i++)
-            {
-                if (excludes.Any(t => archetypeMap.Get(i).Contains(t)))
-                {
-                    excludedGroups.Add(archetypeGroupMap.Get(i));
-                }
-            }
+            var includedGroups = Enumerable.Range(1, nextArchetypeId - 1)
+                .Where(i => includes.All(archetypeMap.Get(i).Contains))
+                .Select(archetypeGroupMap.Get);
+            var excludedGroups = Enumerable.Range(1, nextArchetypeId - 1)
+                .Where(i => excludes.Any(archetypeMap.Get(i).Contains))
+                .Select(archetypeGroupMap.Get);
             return includedGroups.Except(excludedGroups);
         }
 
