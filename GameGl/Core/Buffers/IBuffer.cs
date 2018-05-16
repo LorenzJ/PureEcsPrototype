@@ -1,5 +1,7 @@
 ﻿using OpenGL;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GameGl.Core.Buffers
 {
@@ -35,6 +37,12 @@ namespace GameGl.Core.Buffers
             Gl.BufferData(bufferTarget, (uint)size, ptr, bufferUsage);
             Gl.BindBuffer(bufferTarget, 0);
             return handle;
+        }
+
+        public static void Dispose<T>(this IEnumerable<T> buffers)
+            where T : IBuffer
+        {
+            Gl.DeleteBuffers(buffers.Select(b => b.Handle).ToArray());
         }
     }
 }

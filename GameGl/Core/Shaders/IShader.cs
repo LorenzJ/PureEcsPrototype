@@ -1,5 +1,6 @@
 ﻿using OpenGL;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
@@ -32,6 +33,15 @@ namespace GameGl.Core.Shaders
             }
 #endif
             return shader;
+        }
+
+        public static void Dispose<T>(this IEnumerable<T> shaders)
+            where T : IHandle
+        {
+            foreach (var shader in shaders)
+            {
+                Gl.DeleteShader(shader.Handle);
+            }
         }
     }
 }
