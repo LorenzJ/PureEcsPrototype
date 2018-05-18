@@ -1,5 +1,5 @@
-﻿using GameGl.Core.Buffers;
-using OpenGL;
+﻿using OpenGL;
+using SaferGl.Buffers;
 
 namespace GameGl
 {
@@ -17,7 +17,7 @@ namespace GameGl
 
             instance = new Quad
             {
-                vbo = ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length)
+                vbo = BufferFactory.Create<ArrayBuffer>(sizeof(float) * (uint)vertices.Length, vertices, BufferUsage.StaticDraw)
             };
         }
 

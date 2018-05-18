@@ -1,4 +1,4 @@
-﻿using GameGl.Core.Buffers;
+﻿using SaferGl.Buffers;
 
 namespace GameGl
 {
@@ -17,7 +17,7 @@ namespace GameGl
             };
             instance = new Triangle
             {
-                vbo = ArrayBuffer.Create(vertices, sizeof(float) * vertices.Length)
+                vbo = BufferFactory.Create<ArrayBuffer>(sizeof(float) * (uint)vertices.Length, vertices, OpenGL.BufferUsage.StaticDraw)
             };
         }
 

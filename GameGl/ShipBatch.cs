@@ -1,12 +1,12 @@
 ﻿using System.Runtime.InteropServices;
 using Game.Components.Transform;
-using GameGl.Core;
-using GameGl.Core.Attributes;
-using GameGl.Core.Buffers;
-using GameGl.Core.Shaders;
-using GameGl.Core.Uniforms;
 using GameGl.Properties;
 using OpenGL;
+using SaferGl;
+using SaferGl.Buffers;
+using SaferGl.Shaders;
+using SaferGl.Uniforms;
+using SaferGl.Attributes;
 
 namespace GameGl
 {
@@ -15,8 +15,8 @@ namespace GameGl
         private ShaderProgram program;
         private ArrayBuffer ivbo;
         private VertexArray vao;
-        private FloatUniform timeUniform;
-        private FloatUniform scaleUniform;
+        private readonly FloatUniform timeUniform;
+        private readonly FloatUniform scaleUniform;
 
         public ShipBatch(ShaderProgram program, ArrayBuffer ivbo, VertexArray vao, FloatUniform timeUniform, FloatUniform scaleUniform)
         {
@@ -30,39 +30,50 @@ namespace GameGl
         internal static ShipBatch Create()
         {
             ShaderProgram program;
-            using (var vertexShader = VertexShader.FromSource(Resources.BulletVertex))
-            using (var fragmentShader = FragmentShader.FromSource(Resources.ShipFrag))
+            using (var vertexShader = ShaderFactory.FromSource<VertexShader>(Resources.BulletVertex))
+            using (var fragmentShader = ShaderFactory.FromSource<FragmentShader>(Resources.ShipFrag))
             {
                 program = ShaderProgram.LinkShaders(vertexShader, fragmentShader);
             }
-            var timeUniform = program.GetFloatUniform("uTime");
-            var scaleUniform = program.GetFloatUniform("uScale");
+            var timeUniform = program.GetUniform<FloatUniform>("uTime");
+            var scaleUniform = program.GetUniform<FloatUniform>("uScale");
 
-            var ivbo = ArrayBuffer.Create(Marshal.SizeOf<Position>() * 256, BufferUsage.DynamicDraw);
+            var ivbo = BufferFactory.Create<ArrayBuffer>((uint)Marshal.SizeOf<Position>() * 256, null, BufferUsage.DynamicDraw);
             var vbo = Triangle.VertexBuffer;
 
-            var builder = new VertexArrayBuilder();
-            builder.ChangeArrayBuffer(vbo);
-            builder.SetAttribute(new Vec2Attribute(0), 0, 0);
-            builder.ChangeArrayBuffer(ivbo);
-            builder.SetAttribute(new Vec2Attribute(1), 0, 0);
-            builder.SetAttributeDivisor(1, 1);
-            var vao = builder.Build();
+            var vertexArray = VertexArray.Create();
+            using (var vaoBinding = vertexArray.BindVertexArray())
+            {
+                using (var vboBinding = vbo.BindBuffer())
+                {
+                    var positionAttribute = new Vec2Attribute(0u);
+                    vaoBinding.SetAttributePointer(positionAttribute, 0, 0);
+                    vaoBinding.EnableAttribute(positionAttribute);
+                }
+                using (var ivboBinding = ivbo.BindBuffer())
+                {
+                    var offsetAttribute = new Vec2Attribute(1u);
+                    vaoBinding.SetAttributePointer(offsetAttribute, 0, 0);
+                    Gl.VertexAttribDivisor(offsetAttribute.Index, 1u);
+                    vaoBinding.EnableAttribute(offsetAttribute);
+                }
+            }
 
-            return new ShipBatch(program, ivbo, vao, timeUniform, scaleUniform);
+            return new ShipBatch(program, ivbo, vertexArray, timeUniform, scaleUniform);
         } 
 
         internal void Draw(Position[] positions, int count, float time)
         {
-            program.Use();
-            scaleUniform.Set(.1f);
-            timeUniform.Set(time);
-            ivbo.Bind();
-            ivbo.BufferSubData(0, Marshal.SizeOf<Position>() * count, positions);
-            ivbo.Unbind();
-            vao.Bind();
-            Gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 3, count);
-            vao.Unbind();
+            using (var programBinding = program.Use())
+            {
+                programBinding.Set(scaleUniform, .1f);
+                programBinding.Set(timeUniform, time);
+
+                using (var ivboBinding = ivbo.BindBuffer())
+                    ivboBinding.SubData(0, (uint)Marshal.SizeOf<Position>() * (uint)count, positions);
+                using (var vaoBinding = vao.BindVertexArray())
+                    Gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 3, count);
+            }
         }
     }
 }
