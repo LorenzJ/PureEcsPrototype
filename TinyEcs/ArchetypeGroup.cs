@@ -9,6 +9,7 @@ namespace TinyEcs
         private Dictionary<Type, Array> componentsMap;
 
         const int initialSize = 64;
+        private Archetype archetype;
         private Entity[] entities;
         private Type[] componentTypes;
         // Should find a better solution for this.
@@ -17,7 +18,7 @@ namespace TinyEcs
 
         public int Count { get; private set; }
 
-        internal ArchetypeGroup(Type[] types)
+        internal ArchetypeGroup(Archetype archetype, Type[] types)
         {
             entities = new Entity[initialSize];
             tagTypes = types.Where(t => t.GetInterfaces().Contains(typeof(ITag))).ToArray();
@@ -33,6 +34,10 @@ namespace TinyEcs
         internal ref T Ref<T>(int index)
             where T : struct, IComponent 
             => ref (componentsMap[typeof(T)] as T[])[index];
+
+        //internal ref T Ref2<T>(int index)
+        //    where T : struct, IComponent
+        //    => ref (ComponentList<T>.Get(archetype)[index]);
 
         internal int Add(Entity entity, ref FlatMap<Entity, int> entityIndexMap)
         {

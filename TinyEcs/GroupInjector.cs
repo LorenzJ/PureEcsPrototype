@@ -58,7 +58,7 @@ namespace TinyEcs
             componentGroup = world.CreateComponentGroup(includes, excludes, entitiesField != null);
             writes = writeFields.Select(GetComponentType).ToArray();
 
-            var expressions = new System.Collections.Generic.List<Expression>();
+            var expressions = new List<Expression>();
             if (lengthField != null)
             {
                 var expr = Expression.Assign(

@@ -302,7 +302,7 @@ namespace TinyEcs
             // Add types for reverse lookup
             typeMap.Add(types, archetype);
             // Create an archetype group for the new archetype
-            archetypeGroupMap[archetype] = new ArchetypeGroup(types);
+            archetypeGroupMap[archetype] = new ArchetypeGroup(archetype, types);
             // Update component groups
             foreach (var componentGroup in componentGroups)
             {
@@ -454,6 +454,20 @@ namespace TinyEcs
             var currentArchetype = entityArchetypeMap[entity];
             var types = archetypeMap[currentArchetype].Concat(new Type[] { typeof(T) }).ToArray();
             MoveEntity(entity, currentArchetype, types);
+        }
+
+        /// <summary>
+        /// Change an entity's archetype. Existing components that do not fit the new archetype will be lost.
+        /// New components introduced will not be initialized.
+        /// </summary>
+        /// <param name="entity">Entity to change the archetype of</param>
+        /// <param name="archetype">The target archetype</param>
+        public void Become(Entity entity, Archetype archetype)
+        {
+            var currentArchetype = entityArchetypeMap[entity];
+            var currentGroup = archetypeGroupMap[currentArchetype];
+            var newGroup = archetypeGroupMap[archetype];
+            currentGroup.Move(entity, newGroup, ref entityIndexMap);
         }
 
         private void MoveEntity(Entity entity, Archetype currentArchetype, Type[] types)

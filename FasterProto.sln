@@ -18,6 +18,8 @@ Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "TinyEcsDocumentation", "Tin
 		{2DFA656D-CE3D-4381-8F05-C278CE5638F8} = {2DFA656D-CE3D-4381-8F05-C278CE5638F8}
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaferGl", "SaferGl\SaferGl.csproj", "{05CE9058-275B-47F6-8DBE-74604226AC9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,10 @@ Global
 		{8FD87F69-8312-4ECA-8C6B-4DFD642672B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FD87F69-8312-4ECA-8C6B-4DFD642672B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FD87F69-8312-4ECA-8C6B-4DFD642672B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05CE9058-275B-47F6-8DBE-74604226AC9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05CE9058-275B-47F6-8DBE-74604226AC9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05CE9058-275B-47F6-8DBE-74604226AC9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05CE9058-275B-47F6-8DBE-74604226AC9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
