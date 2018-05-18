@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Game\Game.csproj" />
+    <ProjectReference Include="..\SaferGl\SaferGl.csproj" />
   </ItemGroup>
 
   <ItemGroup>
