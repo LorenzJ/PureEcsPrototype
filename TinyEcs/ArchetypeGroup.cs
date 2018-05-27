@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace TinyEcs
 {
@@ -16,6 +17,8 @@ namespace TinyEcs
         private readonly bool[] lockedForWriting;
         private readonly Type[] tagTypes;
 
+        private readonly Action<int, int> swapBackRemove;
+
         public int Count { get; private set; }
 
         internal ArchetypeGroup(Archetype archetype, Type[] types)
@@ -29,15 +32,35 @@ namespace TinyEcs
             {
                 componentsMap.Add(componentType, Array.CreateInstance(componentType, initialSize));
             }
+            swapBackRemove = componentsMap.Count > 0 ? CreateSwapBackRemove(componentsMap) : null;
         }
+
+        private static Action<int, int> CreateSwapBackRemove(Dictionary<Type, Array> componentsMap)
+        {
+            var genericMethod = new Action<Dictionary<Type, Array>, int, int>(SwapBackRemove<object>).Method.GetGenericMethodDefinition();
+            var indexParameter = Expression.Parameter(typeof(int));
+            var lastParameter = Expression.Parameter(typeof(int));
+            var expressions = componentsMap.Keys
+                .Select(type =>
+                {
+                    var method = genericMethod.MakeGenericMethod(type);
+                    return Expression.Call(method, Expression.Constant(componentsMap), indexParameter, lastParameter);
+                });
+            return Expression.Lambda<Action<int, int>>(
+                Expression.Block(expressions), indexParameter, lastParameter)
+                .Compile();
+        }
+
+        private static void SwapBackRemove<T>(Dictionary<Type, Array> componentsMap, int index, int last)
+        {
+            var tArray = (T[])componentsMap[typeof(T)];
+            tArray[index] = tArray[last];
+        }
+
 
         internal ref T Ref<T>(int index)
             where T : struct, IComponent 
             => ref (componentsMap[typeof(T)] as T[])[index];
-
-        //internal ref T Ref2<T>(int index)
-        //    where T : struct, IComponent
-        //    => ref (ComponentList<T>.Get(archetype)[index]);
 
         internal int Add(Entity entity, ref FlatMap<Entity, int> entityIndexMap)
         {
@@ -74,12 +97,7 @@ namespace TinyEcs
             var lastEntity = entities[Count];
             entities[indexToReplace] = lastEntity;
             // Reflect the change in the component arrays
-            foreach (var arrayObject in componentsMap.Values)
-            {
-                var arr = arrayObject as Array;
-                arr.SetValue(arr.GetValue(Count), indexToReplace); // Todo: Remove boxing somehow
-            }
-            // Update the entityIndexMap to reflect the change
+            swapBackRemove(indexToReplace, Count);
             entityIndexMap[lastEntity] = indexToReplace;
         }
 
