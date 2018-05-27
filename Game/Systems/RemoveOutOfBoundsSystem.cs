@@ -19,10 +19,20 @@ namespace Game.Systems
             public BulletTag BulletTag;
         }
         [Group] public Bullets bullets;
-        public Bullets bullets2 = new Bullets();
+
+        public class Enemies
+        {
+            public int Length;
+            public RoDataStream<Entity> Entities;
+            public RoDataStream<Position> Positions;
+            public ShipTag ShipTag;
+            public EnemyTag EnemyTag;
+        }
+        [Group] public Enemies enemies;
 
         private DeadEntityList deaths;
         private List<Entity> oobBullets = new List<Entity>(64);
+        private List<Entity> oobEnemies = new List<Entity>(64);
 
         public RemoveOutOfBoundsSystem(DeadEntityList deadEntityList)
         {
@@ -33,7 +43,6 @@ namespace Game.Systems
         {
             var removeBullets = Task.Run(() =>
             {
-                
                 for (var i = 0; i < bullets.Length; i++)
                 {
                     var pos = bullets.Positions[i].Vector;
@@ -46,7 +55,21 @@ namespace Game.Systems
                 oobBullets.Clear();
             });
 
-            Task.WaitAll(removeBullets);
+            var removeEnemies = Task.Run(() =>
+            {
+                for (var i = 0; i < enemies.Length; i++)
+                {
+                    var pos = enemies.Positions[i].Vector;
+                    if (pos.Y < -2f)
+                    {
+                        oobEnemies.Add(enemies.Entities[i]);
+                    }
+                }
+                deaths.AddRange(oobEnemies);
+                oobEnemies.Clear();
+            });
+
+            Task.WaitAll(removeBullets, removeEnemies);
         }
     }
 }

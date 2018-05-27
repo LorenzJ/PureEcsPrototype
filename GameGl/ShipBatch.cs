@@ -18,6 +18,8 @@ namespace GameGl
         private readonly FloatUniform timeUniform;
         private readonly FloatUniform scaleUniform;
 
+        private const uint MAX_SHIPS = 256u;
+
         public ShipBatch(ShaderProgram program, ArrayBuffer ivbo, VertexArray vao, FloatUniform timeUniform, FloatUniform scaleUniform)
         {
             this.program = program;
@@ -38,7 +40,7 @@ namespace GameGl
             var timeUniform = program.GetUniform<FloatUniform>("uTime");
             var scaleUniform = program.GetUniform<FloatUniform>("uScale");
 
-            var ivbo = BufferFactory.Create<ArrayBuffer>((uint)Marshal.SizeOf<Position>() * 256, null, BufferUsage.DynamicDraw);
+            var ivbo = BufferFactory.Create<ArrayBuffer>((uint)Marshal.SizeOf<Position>() * MAX_SHIPS, null, BufferUsage.StreamDraw);
             var vbo = Triangle.VertexBuffer;
 
             var vertexArray = VertexArray.Create();
@@ -70,9 +72,13 @@ namespace GameGl
                 programBinding.Set(timeUniform, time);
 
                 using (var ivboBinding = ivbo.BindBuffer())
+                {
+                    ivboBinding.Data((uint)Marshal.SizeOf<Position>() * MAX_SHIPS, null, BufferUsage.StreamDraw);
                     ivboBinding.SubData(0, (uint)Marshal.SizeOf<Position>() * (uint)count, positions);
+                }
+
                 using (var vaoBinding = vao.BindVertexArray())
-                    Gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 3, count);
+                    vaoBinding.DrawArraysInstanced(PrimitiveType.Triangles, 0, 3, count);
             }
         }
     }

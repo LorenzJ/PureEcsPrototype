@@ -18,8 +18,9 @@ namespace GameGl
         VertexArray vao;
         ArrayBuffer ivbo;
         ShaderProgram program;
-        FloatUniform timeUniform;
-        FloatUniform scaleUniform;
+        private const uint MAX_BULLETS = 2048u;
+        readonly FloatUniform timeUniform;
+        readonly FloatUniform scaleUniform;
 
         private BulletBatch(VertexArray vao, ArrayBuffer ivbo, ShaderProgram program, FloatUniform timeUniform, FloatUniform scaleUniform)
         {
@@ -38,11 +39,12 @@ namespace GameGl
                 programBinding.Set(scaleUniform, 0.05f);
                 using (var ivboBinding = ivbo.BindBuffer())
                 {
+                    ivboBinding.Data((uint)Marshal.SizeOf<Position>() * MAX_BULLETS, null, BufferUsage.StreamDraw);
                     ivboBinding.SubData(0, (uint)Marshal.SizeOf<Position>() * (uint)length, positions);
                 }
                 using (var vaoBinding = vao.BindVertexArray())
                 {
-                    Gl.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, length);
+                    vaoBinding.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, length);
                 }
             }
         }
@@ -53,7 +55,7 @@ namespace GameGl
             var timeUniform = program.GetUniform<FloatUniform>("uTime");
             var scaleUniform = program.GetUniform<FloatUniform>("uScale");
             var vbo = Quad.VertexBuffer;
-            var ivbo = BufferFactory.Create<ArrayBuffer>((uint)Marshal.SizeOf<Position>() * 4000u, null, BufferUsage.DynamicDraw);
+            var ivbo = BufferFactory.Create<ArrayBuffer>((uint)Marshal.SizeOf<Position>() * MAX_BULLETS, null, BufferUsage.StreamDraw);
             var vao = CreateVertexArray();
             return new BulletBatch(vao, ivbo, program, timeUniform, scaleUniform);
 
@@ -82,7 +84,7 @@ namespace GameGl
                         var offsetAttribute = new Vec2Attribute(1u);
                         vaoBinding.SetAttributePointer(offsetAttribute, 0, 0);
                         vaoBinding.EnableAttribute(offsetAttribute);
-                        Gl.VertexAttribDivisor(1, 1);
+                        vaoBinding.SetAttributeDivisor(offsetAttribute, 1);
                     }
                 }
                 return newVao;

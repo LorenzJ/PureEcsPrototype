@@ -42,6 +42,12 @@ namespace TinyEcs
             where T : IMessage => world.Send(messages);
 
         /// <summary>
+        /// An action to be executed after the current message has been handled.
+        /// </summary>
+        /// <param name="action">Action to execute</param>
+        public void Post(Action action) => world.PostAction(action);
+
+        /// <summary>
         /// Get a dependency
         /// </summary>
         /// <typeparam name="T">type of dependency</typeparam>

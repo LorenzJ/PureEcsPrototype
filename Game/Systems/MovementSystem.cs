@@ -8,7 +8,6 @@ namespace Game.Systems
 {
     public class MovementSystem : ComponentSystem<UpdateMessage>
     {
-
         public class Data
         {
             public int Length;

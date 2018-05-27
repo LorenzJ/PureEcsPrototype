@@ -204,19 +204,13 @@ namespace WindowsGame
         private void TimescaleInput_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
             var value = Double.Parse(timestepInput.Text, CultureInfo.InvariantCulture);
-            if (value == 0)
-            {
-                e.Cancel = true;
-            }
+            e.Cancel = value == 0;
         }
 
         private void TimestepInput_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
             var value = Double.Parse(timestepInput.Text, CultureInfo.InvariantCulture);
-            if (value == 0)
-            {
-                e.Cancel = true;
-            }
+            e.Cancel = value == 0;
         }
     }
 }
