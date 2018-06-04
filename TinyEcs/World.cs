@@ -42,7 +42,7 @@ namespace TinyEcs
         /// <summary>
         /// A lookup of message type to systems
         /// </summary>
-        private readonly Lookup<Type, ISystem> systemMap;
+        private readonly Dictionary<Type, ISystem[]> systemMap;
         /// <summary>
         /// A lookup for group injectors of systems
         /// </summary>
@@ -95,8 +95,18 @@ namespace TinyEcs
 
             groupInjectorMap = new Dictionary<ISystem, List<GroupInjector>>();
 
-            systemMap = systems
-                .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
+            //systemMap = systems
+            //    .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>;
+
+            var systemTuples = (systems
+               .ToLookup(system => system.GetType().BaseType.GetGenericArguments()[0]) as Lookup<Type, ISystem>)
+               .ApplyResultSelector((type, s) => (type, systems: s.ToArray()));
+
+            systemMap = new Dictionary<Type, ISystem[]>();
+            foreach (var tuple in systemTuples)
+            {
+                systemMap.Add(tuple.type, tuple.systems);
+            }
 
             this.dependencyMap = dependencyMap;
 
@@ -205,13 +215,14 @@ namespace TinyEcs
         /// </summary>
         /// <param name="message">Message to post</param>
         /// <remarks>Systems will run in parallel, directly using this class in the Execute method of a system is unsafe.</remarks>
-        public void Post(IMessage message)
+        public void Post<T>(T message)
+            where T : IMessage
         {
             var systems = systemMap[message.GetType()];
             var injectors = systems.SelectMany(system => groupInjectorMap[system]);
 
             Parallel.ForEach(injectors, injector => injector.Inject());
-            Parallel.ForEach(systems, system => system.Execute(this, message));
+            Parallel.ForEach(systems, system => ((ComponentSystem<T>)system).Execute(this, message));
             Parallel.ForEach(injectors, injector => injector.WriteAndUnlock());
 
             foreach (var entry in postMessages)
