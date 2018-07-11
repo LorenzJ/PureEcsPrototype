@@ -32,25 +32,25 @@ namespace GameGl
             bulletBatch.Draw(enemyBulletPositions, enemyBulletCount, time + .5f);
         }
 
-        internal void SetPlayers(RoDataStream<Position> positions, int length)
+        internal void SetPlayers(RoData<Position> positions, int length)
         {
             playerCount = length;
             playerPositions = (Position[])positions;
         }
 
-        internal void SetEnemies(RoDataStream<Position> positions, int length)
+        internal void SetEnemies(RoData<Position> positions, int length)
         {
             enemyPositions = (Position[])positions;
             enemyCount = length;
         }
 
-        internal void SetPlayerBullets(RoDataStream<Position> positions, int length)
+        internal void SetPlayerBullets(RoData<Position> positions, int length)
         {
             playerBulletCount = length;
             playerBulletPositions = (Position[])positions;
         }
 
-        internal void SetEnemyBullets(RoDataStream<Position> positions, int length)
+        internal void SetEnemyBullets(RoData<Position> positions, int length)
         {
             enemyBulletCount = length;
             enemyBulletPositions = (Position[])positions;

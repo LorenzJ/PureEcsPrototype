@@ -4,7 +4,7 @@
     /// A readable and writable array of components.
     /// </summary>
     /// <typeparam name="T">The type of component</typeparam>
-    public struct RwDataStream<T>
+    public struct RwData<T>
         where T : struct, IComponent
     {
         private T[] items;
@@ -13,7 +13,7 @@
         /// Wrap an array as a RwDataStream.
         /// </summary>
         /// <param name="array">Array to wrap</param>
-        public RwDataStream(T[] array)
+        public RwData(T[] array)
         {
             items = array;
         }
@@ -30,14 +30,14 @@
         /// </summary>
         /// <param name="rw">RwDataStream to cast.</param>
         /// <returns>Array of <typeparamref name="T"/></returns>
-        public static explicit operator T[](RwDataStream<T> rw) => rw.items;
+        public static explicit operator T[](RwData<T> rw) => rw.items;
     }
 
     /// <summary>
     /// A read-only array of components or entities.
     /// </summary>
     /// <typeparam name="T">Either the type of component or entity</typeparam>
-    public struct RoDataStream<T>
+    public struct RoData<T>
         where T : struct, IData
     {
         internal T[] items;
@@ -46,7 +46,7 @@
         /// Wrap an array as a RoDataStream.
         /// </summary>
         /// <param name="array">Array to wrap</param>
-        public RoDataStream(T[] array)
+        public RoData(T[] array)
         {
             items = array;
         }
@@ -63,6 +63,6 @@
         /// </summary>
         /// <param name="ro">RoDataStream to cast.</param>
         /// <returns>Array of <typeparamref name="T"/></returns>
-        public static explicit operator T[] (RoDataStream<T> ro) => ro.items;
+        public static explicit operator T[] (RoData<T> ro) => ro.items;
     }
 }

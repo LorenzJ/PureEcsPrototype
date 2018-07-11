@@ -10,9 +10,9 @@ namespace Game.Systems
         public class Data
         {
             public int Length;
-            public RwDataStream<Input> Inputs;
-            public RoDataStream<PlayerInfo> PlayerInfos;
-            public RwDataStream<Heading> Headings;
+            public RwData<Input> Inputs;
+            public RoData<PlayerInfo> PlayerInfos;
+            public RwData<Heading> Headings;
         }
         [Group] public Data data;
 

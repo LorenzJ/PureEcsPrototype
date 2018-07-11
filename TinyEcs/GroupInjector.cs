@@ -24,16 +24,16 @@ namespace TinyEcs
                 .Where(fi => fi.FieldType == typeof(int))
                 .SingleOrDefault();
             var entitiesField = fields
-                .Where(fi => fi.FieldType == typeof(RoDataStream<Entity>))
+                .Where(fi => fi.FieldType == typeof(RoData<Entity>))
                 .SingleOrDefault();
             var readFields = fields
                 .Where(fi => fi.FieldType.IsGenericType
-                    && fi.FieldType.GetGenericTypeDefinition() == typeof(RoDataStream<>)
-                    && fi.FieldType != typeof(RoDataStream<Entity>))
+                    && fi.FieldType.GetGenericTypeDefinition() == typeof(RoData<>)
+                    && fi.FieldType != typeof(RoData<Entity>))
                 .ToArray();
             var writeFields = fields
                 .Where(fi => fi.FieldType.IsGenericType
-                    && fi.FieldType.GetGenericTypeDefinition() == typeof(RwDataStream<>))
+                    && fi.FieldType.GetGenericTypeDefinition() == typeof(RwData<>))
                 .ToArray();
             var tagFields = fields
                 .Where(fi => fi.FieldType.GetInterfaces().Contains(typeof(ITag)));
@@ -74,8 +74,8 @@ namespace TinyEcs
                 expressions.Add(expr);
             }
 
-            var readMethod = new Func<RoDataStream<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
-            var writeMethod = new Func<RwDataStream<DummyComponent>>(componentGroup.GetWrite<DummyComponent>).Method.GetGenericMethodDefinition();
+            var readMethod = new Func<RoData<DummyComponent>>(componentGroup.GetRead<DummyComponent>).Method.GetGenericMethodDefinition();
+            var writeMethod = new Func<RwData<DummyComponent>>(componentGroup.GetWrite<DummyComponent>).Method.GetGenericMethodDefinition();
 
             var injectorBody =
                 CreateInjectors(targetObject, readFields, readMethod)

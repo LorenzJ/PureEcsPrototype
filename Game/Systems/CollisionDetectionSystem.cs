@@ -80,8 +80,8 @@ namespace Game.Systems
 
         private List<(Entity, Entity)> 
             GetCollisionPairs(
-                RoDataStream<Position> positions1, RoDataStream<Circle> colliders1, RoDataStream<Entity> entities1, int length1,
-                RoDataStream<Position> positions2, RoDataStream<Circle> colliders2, RoDataStream<Entity> entities2, int length2)
+                RoData<Position> positions1, RoData<Circle> colliders1, RoData<Entity> entities1, int length1,
+                RoData<Position> positions2, RoData<Circle> colliders2, RoData<Entity> entities2, int length2)
         {
             var pairs = new List<(Entity, Entity)>();
             for (var i = 0; i < length1; i++)

@@ -18,10 +18,10 @@ namespace Game.Systems
         public class Data
         {
             public int Length;
-            public RoDataStream<Entity> entities;
-            public RoDataStream<Input> Inputs;
-            public RoDataStream<Position> Positions;
-            public RwDataStream<WeaponState> Weapons;
+            public RoData<Entity> entities;
+            public RoData<Input> Inputs;
+            public RoData<Position> Positions;
+            public RwData<WeaponState> Weapons;
         }
         [Group] public Data data;
 

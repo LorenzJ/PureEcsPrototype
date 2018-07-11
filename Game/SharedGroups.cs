@@ -9,9 +9,9 @@ namespace Game
     public class EnemyBullets
     {
         public int Length;
-        public RoDataStream<Entity> Entities;
-        public RoDataStream<Position> Positions;
-        public RoDataStream<Circle> Colliders;
+        public RoData<Entity> Entities;
+        public RoData<Position> Positions;
+        public RoData<Circle> Colliders;
         public EnemyTag EnemyTag;
         public BulletTag BulletTag;
     }
@@ -19,10 +19,10 @@ namespace Game
     public class PlayerBullets
     {
         public int Length;
-        public RoDataStream<Entity> Entities;
-        public RoDataStream<Position> Positions;
-        public RoDataStream<Circle> Colliders;
-        public RoDataStream<ParentEntity> Parents;
+        public RoData<Entity> Entities;
+        public RoData<Position> Positions;
+        public RoData<Circle> Colliders;
+        public RoData<ParentEntity> Parents;
         public PlayerTag PlayerTag;
         public BulletTag BulletTag;
     }
@@ -30,9 +30,9 @@ namespace Game
     public class Players
     {
         public int Length;
-        public RoDataStream<Entity> Entities;
-        public RoDataStream<Position> Positions;
-        public RoDataStream<Circle> Colliders;
+        public RoData<Entity> Entities;
+        public RoData<Position> Positions;
+        public RoData<Circle> Colliders;
         public PlayerTag PlayerTag;
         public ShipTag ShipTag;
     }
@@ -40,9 +40,9 @@ namespace Game
     public class Enemies
     {
         public int Length;
-        public RoDataStream<Entity> Entities;
-        public RoDataStream<Position> Positions;
-        public RoDataStream<Circle> Colliders;
+        public RoData<Entity> Entities;
+        public RoData<Position> Positions;
+        public RoData<Circle> Colliders;
         public EnemyTag EnemyTag;
         public ShipTag ShipTag;
     }

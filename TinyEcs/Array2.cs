@@ -72,16 +72,16 @@ namespace TinyEcs
 
         public Array Data => items;
 
-        public static RoDataStream<T> AsRoStream<T>(Array2<T> array)
-            where T : struct, IData => new RoDataStream<T>(array.Data as T[]);
+        public static RoData<T> AsRoStream<T>(Array2<T> array)
+            where T : struct, IData => new RoData<T>(array.Data as T[]);
 
-        public static RoDataStream<T> AsRoStream<T>(Array2 array)
-            where T : struct, IData => new RoDataStream<T>(array.Data as T[]);
+        public static RoData<T> AsRoStream<T>(Array2 array)
+            where T : struct, IData => new RoData<T>(array.Data as T[]);
 
-        public static RwDataStream<T> AsRwStream<T>(Array2<T> array)
-            where T : struct, IComponent => new RwDataStream<T>(array.Data as T[]);
+        public static RwData<T> AsRwStream<T>(Array2<T> array)
+            where T : struct, IComponent => new RwData<T>(array.Data as T[]);
 
-        public static RwDataStream<T> AsRwStream<T>(Array2 array) 
-            where T : struct, IComponent => new RwDataStream<T>(array.Data as T[]);
+        public static RwData<T> AsRwStream<T>(Array2 array) 
+            where T : struct, IComponent => new RwData<T>(array.Data as T[]);
     }
 }

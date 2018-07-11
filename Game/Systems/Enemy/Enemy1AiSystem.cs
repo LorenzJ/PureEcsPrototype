@@ -11,8 +11,8 @@ namespace Game.Systems.Enemy
         public class Data
         {
             public int Length;
-            public RwDataStream<Enemy1Weapon> Weapons;
-            public RoDataStream<Position> Positions;
+            public RwData<Enemy1Weapon> Weapons;
+            public RoData<Position> Positions;
         }
         [Group] public Data data;
         [Group] public Players players;

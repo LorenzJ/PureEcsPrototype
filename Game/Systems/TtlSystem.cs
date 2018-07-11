@@ -12,8 +12,8 @@ namespace Game.Systems
         public class Data
         {
             public int Length;
-            public RoDataStream<Entity> Entities;
-            public RwDataStream<Ttl> Ttls;
+            public RoData<Entity> Entities;
+            public RwData<Ttl> Ttls;
         }
         [Group] public Data data;
 

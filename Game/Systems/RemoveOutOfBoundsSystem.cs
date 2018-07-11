@@ -14,8 +14,8 @@ namespace Game.Systems
         public class Bullets
         {
             public int Length;
-            public RoDataStream<Entity> Entities;
-            public RoDataStream<Position> Positions;
+            public RoData<Entity> Entities;
+            public RoData<Position> Positions;
             public BulletTag BulletTag;
         }
         [Group] public Bullets bullets;
@@ -23,8 +23,8 @@ namespace Game.Systems
         public class Enemies
         {
             public int Length;
-            public RoDataStream<Entity> Entities;
-            public RoDataStream<Position> Positions;
+            public RoData<Entity> Entities;
+            public RoData<Position> Positions;
             public ShipTag ShipTag;
             public EnemyTag EnemyTag;
         }

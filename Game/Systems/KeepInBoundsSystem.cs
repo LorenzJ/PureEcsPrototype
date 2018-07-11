@@ -14,7 +14,7 @@ namespace Game.Systems
         public class Data
         {
             public int Length;
-            public RwDataStream<Position> Positions;
+            public RwData<Position> Positions;
             public PlayerTag playerTag;
             public ShipTag shipTag;
         }

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace TinyEcs
 {
     /// <summary>
     /// An entity is a key that defines a relationship between different components.
     /// </summary>
+    [DebuggerDisplay("Handle {Handle}")]
     public struct Entity : IHandle<int>, IData, IEquatable<Entity>
     {
         internal int handle;

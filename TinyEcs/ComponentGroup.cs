@@ -80,7 +80,7 @@ namespace TinyEcs
         /// </summary>
         /// <typeparam name="T">The type of components to read</typeparam>
         /// <returns>Read-only array of T</returns>
-        public RoDataStream<T> GetRead<T>()
+        public RoData<T> GetRead<T>()
             where T : struct, IComponent => Array2.AsRoStream<T>(componentsMap[typeof(T)]);
 
         internal Array GetRead(Type type) => componentsMap[type].Data;
@@ -103,7 +103,7 @@ namespace TinyEcs
         /// </summary>
         /// <typeparam name="T">The type of components</typeparam>
         /// <returns>Mutable array of T</returns>
-        public RwDataStream<T> GetWrite<T>()
+        public RwData<T> GetWrite<T>()
             where T : struct, IComponent
         {
             Lock(typeof(T));
@@ -127,6 +127,6 @@ namespace TinyEcs
             }
         }
         
-        public RoDataStream<Entity> Entities => Array2.AsRoStream(entities);
+        public RoData<Entity> Entities => Array2.AsRoStream(entities);
     }
 }

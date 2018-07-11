@@ -7,9 +7,10 @@ namespace TinyEcs
 {
     internal class ArchetypeGroup
     {
-        private Dictionary<Type, Array> componentsMap;
-
         const int initialSize = 64;
+
+        private Dictionary<Type, Array> componentsMap;
+        private readonly Array[] componentArrays;
         private Archetype archetype;
         private Entity[] entities;
         private Type[] componentTypes;
@@ -28,11 +29,42 @@ namespace TinyEcs
             componentTypes = types.Where(t => t.GetInterfaces().Contains(typeof(IComponent))).ToArray();
             lockedForWriting = new bool[componentTypes.Length];
             componentsMap = new Dictionary<Type, Array>();
-            foreach (var componentType in componentTypes)
+
+            componentArrays = new Array[componentTypes.Length];
+            for (var i = 0; i < componentArrays.Length; i++)
             {
-                componentsMap.Add(componentType, Array.CreateInstance(componentType, initialSize));
+                var componentType = componentTypes[i]; 
+                componentArrays[i] = Array.CreateInstance(componentType, initialSize);
+                componentsMap.Add(componentType, componentArrays[i]);
             }
-            swapBackRemove = componentsMap.Count > 0 ? CreateSwapBackRemove(componentsMap) : null;
+            swapBackRemove = componentArrays.Length > 0 ? CreateSwapBackRemove(componentArrays) : null;
+        }
+
+        private static Action<int, int> CreateSwapBackRemove(Array[] componentArrays)
+        {
+            var genericMethod = new Action<Array[], int, int, int>(SwapBackRemove<object>).Method.GetGenericMethodDefinition();
+            var indexParameter = Expression.Parameter(typeof(int));
+            var upperBoundParameter = Expression.Parameter(typeof(int));
+            var expressions = Enumerable.Range(0, componentArrays.Length)
+                .Select(i =>
+                {
+                    var type = componentArrays[i].GetType().GetElementType();
+                    var method = genericMethod.MakeGenericMethod(type);
+                    return Expression.Call(method,
+                        Expression.Constant(componentArrays),
+                        Expression.Constant(i),
+                        indexParameter,
+                        upperBoundParameter);
+                });
+            return Expression
+                .Lambda<Action<int, int>>(Expression.Block(expressions), indexParameter, upperBoundParameter)
+                .Compile();
+        }
+
+        private static void SwapBackRemove<T>(Array[] componentArrays, int handle, int index, int upperBound)
+        {
+            var array = (T[])componentArrays[handle];
+            array[index] = array[upperBound];
         }
 
         private static Action<int, int> CreateSwapBackRemove(Dictionary<Type, Array> componentsMap)
@@ -80,11 +112,10 @@ namespace TinyEcs
         private void ResizeAllArrays(int length)
         {
             Array.Resize(ref entities, length);
-            foreach (var type in componentTypes)
+            for (var i = 0; i < componentArrays.Length; i++)
             {
-                var arr = componentsMap[type];
-                Resize(ref arr, length);
-                componentsMap[type] = arr;
+                Resize(ref componentArrays[i], length);
+                componentsMap[componentArrays[i].GetType().GetElementType()] = componentArrays[i];
             }
         }
 

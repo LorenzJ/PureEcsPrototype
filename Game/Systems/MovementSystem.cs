@@ -11,8 +11,8 @@ namespace Game.Systems
         public class Data
         {
             public int Length;
-            public RwDataStream<Position> Positions;
-            public RoDataStream<Heading> Headings;
+            public RwData<Position> Positions;
+            public RoData<Heading> Headings;
             [Exclude] public ParticleTag ExcludeParticleTag;
         }
         [Group] public Data data;
@@ -20,8 +20,8 @@ namespace Game.Systems
         public class Particles
         {
             public int Length;
-            public RwDataStream<Position> Positions;
-            public RoDataStream<Heading> Headings;
+            public RwData<Position> Positions;
+            public RoData<Heading> Headings;
             public ParticleTag ParticleTag;
         }
         [Group] public Particles particles;
